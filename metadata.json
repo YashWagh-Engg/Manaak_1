@@ -1,0 +1,6 @@
+{
+  "name": "Legal Metrology Inspector & Compliance System",
+  "description": "AI-assisted Legal Metrology Act & Packaged Commodities Rules 2011 compliance verification, mandatory declaration OCR, Rule 7/8 font height validation, e-commerce overcharge cross-checking, dynamic rule editor, and statutory compounding notice generation.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
