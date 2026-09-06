@@ -139,20 +139,18 @@ export const OverchargeCrossCheck: React.FC<OverchargeCrossCheckProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="bg-slate-900 text-slate-200 rounded-lg p-5 border border-slate-800 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-        <div className="space-y-1">
+      <div className="bg-white text-slate-800 rounded-lg p-6 border border-gray-200 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30 uppercase tracking-widest">
-              Module 2: Persona A Surveillance
-            </span>
-            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">
-              Rule 18(2) PCR 2011 &amp; Sec 36(1)
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#003366] bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200">
+              <Scale className="w-3 h-3 text-[#003366]" />
+              Rule 18(2) Surveillance
             </span>
           </div>
-          <h2 className="text-xl font-semibold tracking-tight text-white flex items-center gap-2">
-            Overcharging &amp; Dual-Pricing Surveillance Cross-Check
+          <h2 className="text-xl font-bold tracking-tight text-slate-900">
+            E-Commerce Pricing &amp; Dual-Pricing Cross-Check
           </h2>
-          <p className="text-xs text-slate-400 max-w-2xl">
+          <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
             Compares physical package Maximum Retail Price (MRP) against e-commerce platform retail checkout prices to detect and penalize illegal online overcharging under Rule 18(2).
           </p>
         </div>
@@ -167,7 +165,7 @@ export const OverchargeCrossCheck: React.FC<OverchargeCrossCheckProps> = ({
               setListingPrice(215);
               handleEvaluate(180, 215, 'Amazon Fresh / Blinkit', 'Daawat Rozana Super Basmati Rice 5kg');
             }}
-            className="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-mono font-medium transition"
+            className="px-3 py-1.5 rounded-md bg-white hover:bg-slate-50 text-slate-700 border border-gray-300 text-xs font-medium transition cursor-pointer shadow-xs"
           >
             Rice (₹180 vs ₹215)
           </button>
@@ -180,7 +178,7 @@ export const OverchargeCrossCheck: React.FC<OverchargeCrossCheckProps> = ({
               setListingPrice(720);
               handleEvaluate(650, 720, 'Quick-Commerce App', 'Sri Vedic Organic A2 Cow Desi Ghee 1L');
             }}
-            className="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-mono font-medium transition"
+            className="px-3 py-1.5 rounded-md bg-white hover:bg-slate-50 text-slate-700 border border-gray-300 text-xs font-medium transition cursor-pointer shadow-xs"
           >
             Ghee (₹650 vs ₹720)
           </button>
@@ -193,7 +191,7 @@ export const OverchargeCrossCheck: React.FC<OverchargeCrossCheckProps> = ({
               setListingPrice(28);
               handleEvaluate(28, 28, 'Verified E-Retail', 'Tata Salt Vacuum Evaporated 1kg');
             }}
-            className="px-3 py-1.5 rounded bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-400 border border-emerald-700/50 text-xs font-mono font-medium transition"
+            className="px-3 py-1.5 rounded-md bg-white hover:bg-slate-50 text-slate-700 border border-gray-300 text-xs font-medium transition cursor-pointer shadow-xs"
           >
             Compliant (₹28 vs ₹28)
           </button>
@@ -203,47 +201,47 @@ export const OverchargeCrossCheck: React.FC<OverchargeCrossCheckProps> = ({
       {/* Main Grid: Input / Cross-Check Card (Left) and Assessment (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* LEFT COLUMN: Input Form */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="bg-slate-900 rounded-lg border border-slate-800 shadow-sm p-5 space-y-4">
-            <h3 className="font-bold text-slate-400 text-xs uppercase tracking-widest flex items-center gap-2 font-mono">
-              <Tag className="w-3.5 h-3.5 text-amber-500" />
+        <div className="lg:col-span-5 space-y-5">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-xs p-5 space-y-4">
+            <h3 className="font-semibold text-slate-900 text-sm flex items-center gap-2">
+              <Tag className="w-4 h-4 text-[#003366]" />
               Surveillance Parameters
             </h3>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-medium text-slate-400 mb-1 font-mono text-[11px] uppercase tracking-wider">Product Title / SKU:</label>
+                <label className="block font-medium text-slate-700 mb-1">Product Title / SKU:</label>
                 <input
                   type="text"
                   value={productTitle}
                   onChange={(e) => setProductTitle(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-slate-200 text-xs focus:outline-none focus:border-amber-500"
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded text-slate-800 text-xs focus:outline-none focus:border-[#003366]"
                 />
               </div>
 
               <div>
-                <label className="block font-medium text-slate-400 mb-1 font-mono text-[11px] uppercase tracking-wider">E-Commerce Platform / Marketplace:</label>
+                <label className="block font-medium text-slate-700 mb-1">E-Commerce Platform / Marketplace:</label>
                 <input
                   type="text"
                   value={platform}
                   onChange={(e) => setPlatform(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-slate-200 text-xs focus:outline-none focus:border-amber-500"
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded text-slate-800 text-xs focus:outline-none focus:border-[#003366]"
                 />
               </div>
 
               <div>
-                <label className="block font-medium text-slate-400 mb-1 font-mono text-[11px] uppercase tracking-wider">Seller / Corporate Entity Name:</label>
+                <label className="block font-medium text-slate-700 mb-1">Seller / Corporate Entity Name:</label>
                 <input
                   type="text"
                   value={sellerName}
                   onChange={(e) => setSellerName(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-slate-200 text-xs focus:outline-none focus:border-amber-500"
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded text-slate-800 text-xs focus:outline-none focus:border-[#003366]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="grid grid-cols-2 gap-3 pt-1">
                 <div>
-                  <label className="block font-medium text-slate-400 mb-1 font-mono text-[11px] uppercase tracking-wider">
+                  <label className="block font-medium text-slate-700 mb-1">
                     Package MRP (₹):
                   </label>
                   <div className="relative">
@@ -252,16 +250,16 @@ export const OverchargeCrossCheck: React.FC<OverchargeCrossCheckProps> = ({
                       type="number"
                       value={packageMrp}
                       onChange={(e) => setPackageMrp(Number(e.target.value))}
-                      className="w-full pl-6 pr-3 py-2 bg-slate-950 border border-slate-700 rounded font-mono font-bold text-amber-400 text-xs focus:outline-none focus:border-amber-500"
+                      className="w-full pl-6 pr-3 py-2 bg-white border border-gray-300 rounded font-mono font-bold text-[#003366] text-xs focus:outline-none focus:border-[#003366]"
                     />
                   </div>
-                  <span className="text-[10px] text-slate-500 mt-0.5 block font-mono">
-                    Extracted from physical label
+                  <span className="text-[11px] text-slate-500 mt-1 block">
+                    From physical label
                   </span>
                 </div>
 
                 <div>
-                  <label className="block font-medium text-slate-400 mb-1 font-mono text-[11px] uppercase tracking-wider">
+                  <label className="block font-medium text-slate-700 mb-1">
                     Online Listed Price (₹):
                   </label>
                   <div className="relative">
@@ -270,10 +268,10 @@ export const OverchargeCrossCheck: React.FC<OverchargeCrossCheckProps> = ({
                       type="number"
                       value={listingPrice}
                       onChange={(e) => setListingPrice(Number(e.target.value))}
-                      className="w-full pl-6 pr-3 py-2 bg-slate-950 border border-slate-700 rounded font-mono font-bold text-amber-400 text-xs focus:outline-none focus:border-amber-500"
+                      className="w-full pl-6 pr-3 py-2 bg-white border border-gray-300 rounded font-mono font-bold text-[#003366] text-xs focus:outline-none focus:border-[#003366]"
                     />
                   </div>
-                  <span className="text-[10px] text-slate-500 mt-0.5 block font-mono">
+                  <span className="text-[11px] text-slate-500 mt-1 block">
                     Checkout price on portal
                   </span>
                 </div>
@@ -282,7 +280,7 @@ export const OverchargeCrossCheck: React.FC<OverchargeCrossCheckProps> = ({
               <button
                 onClick={() => handleEvaluate()}
                 disabled={isEvaluating}
-                className="w-full mt-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
+                className="w-full mt-3 py-2.5 bg-[#003366] hover:bg-[#002244] text-white font-medium rounded-md text-xs transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
               >
                 {isEvaluating ? (
                   <>
@@ -300,47 +298,47 @@ export const OverchargeCrossCheck: React.FC<OverchargeCrossCheckProps> = ({
           </div>
 
           {/* Statutory Law Citation Card */}
-          <div className="bg-slate-900 rounded-lg p-4 border border-slate-800 text-xs text-slate-400 space-y-2 font-mono">
-            <div className="font-bold text-slate-300 flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
-              <Scale className="w-4 h-4 text-amber-500" />
+          <div className="bg-white rounded-lg p-5 border border-gray-200 text-xs text-slate-600 space-y-2 shadow-xs">
+            <div className="font-semibold text-slate-800 flex items-center gap-1.5 text-xs">
+              <Scale className="w-4 h-4 text-[#003366]" />
               Statutory Basis: Rule 18(2), PCR 2011
             </div>
-            <p className="text-[11px] leading-relaxed text-slate-400">
+            <p className="text-xs leading-relaxed text-slate-600">
               "No retail dealer or other person including manufacturer, packer, importer or e-commerce entity shall sell any pre-packaged commodity at a price exceeding the maximum retail price stated on the package."
             </p>
-            <p className="text-[10px] text-slate-500 pt-1 border-t border-slate-800">
+            <p className="text-xs text-slate-500 pt-2 border-t border-gray-100">
               Contravention is punishable under Section 36(1) of the Legal Metrology Act, 2009 with compounding fine up to ₹25,000 for the first offence, and up to ₹50,000 for subsequent offences.
             </p>
           </div>
         </div>
 
         {/* RIGHT COLUMN: Results & Side-by-Side Comparison */}
-        <div className="lg:col-span-7 space-y-4">
+        <div className="lg:col-span-7 space-y-5">
           {/* Status Banner */}
           <div
-            className={`p-5 rounded-lg border shadow-sm ${
+            className={`p-5 rounded-lg border shadow-xs ${
               result.isOvercharging
-                ? 'bg-red-950/20 border-red-500/40 text-red-200'
-                : 'bg-emerald-950/20 border-emerald-500/40 text-emerald-200'
+                ? 'bg-red-50 border-red-200 text-red-900'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-900'
             }`}
           >
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 {result.isOvercharging ? (
-                  <div className="p-2.5 bg-red-600 text-white rounded shadow-sm">
+                  <div className="p-2 bg-red-600 text-white rounded shadow-xs">
                     <AlertTriangle className="w-5 h-5" />
                   </div>
                 ) : (
-                  <div className="p-2.5 bg-emerald-600 text-white rounded shadow-sm">
+                  <div className="p-2 bg-emerald-600 text-white rounded shadow-xs">
                     <CheckCircle className="w-5 h-5" />
                   </div>
                 )}
 
                 <div>
-                  <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-400">
-                    {result.isOvercharging ? 'ILLEGAL OVERCHARGE DETECTED' : 'PRICE COMPLIANT'}
+                  <div className="text-xs font-semibold text-slate-700">
+                    {result.isOvercharging ? 'Illegal Overcharge Detected' : 'Price Compliant'}
                   </div>
-                  <h3 className="text-base font-bold text-white mt-0.5">
+                  <h3 className="text-base font-semibold text-slate-900 mt-0.5">
                     {result.isOvercharging
                       ? `Listed Price exceeds MRP by ₹${result.differenceAmount.toFixed(2)} (+${result.percentageOvercharge}%)`
                       : 'No Overcharging. Listed at or below Maximum Retail Price.'}
@@ -350,11 +348,11 @@ export const OverchargeCrossCheck: React.FC<OverchargeCrossCheckProps> = ({
 
               {/* Penalty Amount */}
               {result.isOvercharging && (
-                <div className="bg-slate-900 p-3 rounded border border-red-500/40 text-right min-w-[150px]">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono block">
+                <div className="bg-white p-3 rounded-md border border-red-200 text-right min-w-[140px] shadow-xs">
+                  <span className="text-xs font-medium text-slate-600 block">
                     Statutory Fine
                   </span>
-                  <span className="text-xl font-bold font-mono text-red-400">
+                  <span className="text-xl font-bold font-mono text-red-700">
                     ₹{notice.compoundingPenaltyInr.toLocaleString('en-IN')}
                   </span>
                 </div>
@@ -362,49 +360,49 @@ export const OverchargeCrossCheck: React.FC<OverchargeCrossCheckProps> = ({
             </div>
           </div>
 
-          {/* Side-by-Side Verification Cards - Geometric style */}
+          {/* Side-by-Side Verification Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Packaging Physical Card */}
-            <div className="bg-slate-900 rounded-lg p-4 border border-slate-800 shadow-sm space-y-3">
-              <div className="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-800">
-                <span className="font-semibold text-slate-300">Physical Packaging Evidence</span>
-                <span className="font-mono text-amber-400 font-semibold text-[10px] uppercase">Ground Truth</span>
+            <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-xs space-y-2.5">
+              <div className="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-gray-100">
+                <span className="font-semibold text-slate-800">Physical Packaging Evidence</span>
+                <span className="text-slate-500 text-xs font-medium">Ground Truth</span>
               </div>
 
               <div className="space-y-1">
-                <div className="text-[10px] uppercase tracking-wider font-mono text-slate-500">Package Maximum Retail Price:</div>
-                <div className="text-3xl font-bold font-mono text-white">
+                <div className="text-xs text-slate-500">Package Maximum Retail Price:</div>
+                <div className="text-2xl font-bold font-mono text-slate-900">
                   ₹{result.packageMrp.toFixed(2)}
                 </div>
-                <div className="text-[11px] text-slate-400">
+                <div className="text-xs text-slate-500">
                   Includes all statutory taxes (Rule 6(1)(e))
                 </div>
               </div>
             </div>
 
             {/* Online Portal Card */}
-            <div className="bg-slate-900 rounded-lg p-4 border border-slate-800 shadow-sm space-y-3">
-              <div className="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-800">
-                <span className="font-semibold text-slate-300">{result.platform}</span>
-                <span className="font-mono text-amber-400 font-semibold text-[10px] uppercase">Online Listing</span>
+            <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-xs space-y-2.5">
+              <div className="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-gray-100">
+                <span className="font-semibold text-slate-800">{result.platform}</span>
+                <span className="text-slate-500 text-xs font-medium">Online Listing</span>
               </div>
 
               <div className="space-y-1">
-                <div className="text-[10px] uppercase tracking-wider font-mono text-slate-500">Active Checkout Price:</div>
+                <div className="text-xs text-slate-500">Active Checkout Price:</div>
                 <div
-                  className={`text-3xl font-bold font-mono ${
-                    result.isOvercharging ? 'text-amber-500' : 'text-emerald-400'
+                  className={`text-2xl font-bold font-mono ${
+                    result.isOvercharging ? 'text-amber-600' : 'text-emerald-700'
                   }`}
                 >
                   ₹{result.listingPrice.toFixed(2)}
                 </div>
-                <div className="text-[11px] text-slate-400 flex items-center gap-1">
+                <div className="text-xs text-slate-600 flex items-center gap-1">
                   {result.isOvercharging ? (
-                    <span className="text-red-400 font-semibold flex items-center gap-1 font-mono text-xs">
+                    <span className="text-red-700 font-semibold flex items-center gap-1 text-xs">
                       <TrendingUp className="w-3.5 h-3.5" /> +₹{result.differenceAmount.toFixed(2)} Excess Markup
                     </span>
                   ) : (
-                    <span className="text-emerald-400 font-semibold flex items-center gap-1 font-mono text-xs">
+                    <span className="text-emerald-700 font-medium flex items-center gap-1 text-xs">
                       <ShieldCheck className="w-3.5 h-3.5" /> Price strictly adheres to package MRP
                     </span>
                   )}
@@ -415,39 +413,39 @@ export const OverchargeCrossCheck: React.FC<OverchargeCrossCheckProps> = ({
 
           {/* Contravention Details Card */}
           {result.isOvercharging && (
-            <div className="bg-slate-900 rounded-lg p-5 border border-slate-800 shadow-sm space-y-4">
-              <h4 className="font-bold text-slate-400 text-xs uppercase tracking-widest flex items-center gap-1.5 font-mono">
-                <FileText className="w-4 h-4 text-amber-500" />
+            <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-xs space-y-4">
+              <h4 className="font-semibold text-slate-900 text-sm flex items-center gap-1.5">
+                <FileText className="w-4 h-4 text-[#003366]" />
                 Statutory Show-Cause Findings
               </h4>
 
-              <div className="p-4 bg-slate-950 border-l-2 border-amber-500 rounded-r text-xs space-y-2">
-                <div className="font-bold font-mono text-[10px] text-amber-400 uppercase tracking-wider">
+              <div className="p-4 bg-slate-50 border border-gray-200 border-l-4 border-l-[#FF9933] rounded-md text-xs space-y-2">
+                <div className="font-semibold text-xs text-[#003366]">
                   STATUTORY BREACH: {result.violationRule}
                 </div>
-                <p className="leading-relaxed text-slate-300">
-                  The subject product <strong className="text-white">"{result.listingTitle}"</strong> offered on <strong className="text-white">{result.platform}</strong> at <strong className="text-amber-400">₹{result.listingPrice.toFixed(2)}</strong> violates Rule 18(2) of the Legal Metrology (Packaged Commodities) Rules, 2011, as the declared Maximum Retail Price (MRP) printed on the manufacturer's packaging is <strong className="text-white">₹{result.packageMrp.toFixed(2)}</strong>. The excess markup of <strong className="text-amber-400">₹{result.differenceAmount.toFixed(2)} (+{result.percentageOvercharge}%)</strong> constitutes illegal dual pricing.
+                <p className="leading-relaxed text-slate-700">
+                  The subject product <strong className="text-slate-900">"{result.listingTitle}"</strong> offered on <strong className="text-slate-900">{result.platform}</strong> at <strong className="text-amber-700">₹{result.listingPrice.toFixed(2)}</strong> violates Rule 18(2) of the Legal Metrology (Packaged Commodities) Rules, 2011, as the declared Maximum Retail Price (MRP) printed on the manufacturer's packaging is <strong className="text-slate-900">₹{result.packageMrp.toFixed(2)}</strong>. The excess markup of <strong className="text-red-700">₹{result.differenceAmount.toFixed(2)} (+{result.percentageOvercharge}%)</strong> constitutes illegal dual pricing.
                 </p>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
-                <div className="text-xs text-slate-400 font-mono">
-                  Statutory Notice Response Window: <strong className="text-amber-400">15 Days</strong>
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100">
+                <div className="text-xs text-slate-600">
+                  Statutory Notice Response Window: <strong className="text-[#003366]">15 Days</strong>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
                   <button
                     onClick={() => onOpenNoticeModal(buildCurrentInspectionRecord())}
-                    className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded text-xs font-semibold transition flex items-center gap-1.5"
+                    className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-gray-300 text-slate-700 rounded-md text-xs font-medium transition flex items-center gap-1.5 shadow-xs cursor-pointer"
                   >
-                    <FileText className="w-3.5 h-3.5 text-amber-400" />
+                    <FileText className="w-3.5 h-3.5 text-slate-600" />
                     Notice Memorandum
                   </button>
 
                   <button
                     onClick={() => generateInspectionPdf(buildCurrentInspectionRecord())}
-                    className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-xs uppercase tracking-wider transition flex items-center gap-1.5 shadow-lg shadow-amber-500/20"
+                    className="px-4 py-2 bg-[#003366] hover:bg-[#002244] text-white font-medium rounded-md text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" />
                     Download PDF Notice

@@ -111,10 +111,10 @@ export function buildPaddleOcrResult(
   }
 
   return {
-    engine: 'PaddleOCR v4 (PP-OCRv4 Multimodal + DBNet Det + SVTR Rec)',
-    detectionModel: 'ch_PP-OCRv4_det / DBNet Mobile (FP16 Quantized)',
-    recognitionModel: 'ch_PP-OCRv4_rec / SVTR-LCNet (Latin & Devanagari)',
-    directionClassifier: 'ch_ppocr_mobile_v2.0_cls (Angle: 0.0°)',
+    engine: 'Gemini Multimodal Vision Extraction',
+    detectionModel: 'Multimodal Boundary Coordinate Extractor',
+    recognitionModel: 'Gemini Vision Rule 6 Recognizer',
+    directionClassifier: 'Optical Normalization (0.0°)',
     directionAngle: 0.0,
     textLines,
     processingTimeMs: Math.max(14, Date.now() - startTime + 38),

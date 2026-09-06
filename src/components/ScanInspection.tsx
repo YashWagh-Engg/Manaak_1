@@ -80,6 +80,9 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
     const cleanProduct = productName && !productName.includes('Pending') ? productName : 'Pre-Packaged Commodity';
 
     const declarations: ExtractedDeclarations = {
+      isFallback: true,
+      fallbackReason: 'Gemini multimodal vision extraction unavailable on network. Showing standard sample benchmark declarations.',
+      extractionMethod: 'fallback_sample',
       mrpText: '₹140.00 (incl. of all taxes)',
       mrpValue: 140,
       hasInclusiveOfTaxes: true,
@@ -143,6 +146,9 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
       status: noticeGrading.violationCount === 0 ? 'VERIFIED' : 'NOTICE_ISSUED',
       inspectorName: role === 'admin' ? 'Chief Metrology Admin' : role === 'supervisor' ? 'Legal Supervisor' : 'Field Inspector',
       inspectorRole: role,
+      isFallback: true,
+      fallbackReason: 'Gemini multimodal vision extraction unavailable on network. Showing standard sample benchmark declarations.',
+      extractionMethod: 'fallback_sample',
     };
   };
 
@@ -303,8 +309,8 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
     customCategory?: string
   ) => {
     setIsAnalyzing(true);
-    setScanStepText('Executing PaddleOCR PP-OCRv4 Text Detection...');
-    setScanProgressPercent(50);
+    setScanStepText('Executing Gemini Multimodal Vision Extraction...');
+    setScanProgressPercent(45);
 
     const isPresetAmul = activeRecord.id === 'INSP-2026-001' && !customProductName;
     const targetProductName = customProductName || (isPresetAmul ? 'Captured Pre-Packaged Commodity' : activeRecord.productName);
@@ -323,11 +329,11 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
     setScanStepText('Verifying PCR 2011 Rule 6 & Rule 8 Font Compliance...');
     setScanProgressPercent(75);
 
-    // Use AbortController with 8.5 second timeout to prevent infinite hung states on mobile
+    // Use AbortController with 25 second timeout to allow multimodal vision model processing
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 8500);
+    }, 25000);
 
     try {
       const response = await fetch('/api/inspect', {
@@ -354,15 +360,24 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
         if (data.success && data.inspectionRecord) {
           setActiveRecord(data.inspectionRecord);
           setScanProgressPercent(100);
-          setScanNotice('✓ Optical Scan Complete: Full AI vision & PaddleOCR inspection verified.');
+          if (data.inspectionRecord.isFallback) {
+            setScanNotice(`⚠️ Notice: ${data.inspectionRecord.fallbackReason || 'Showing sample benchmark data.'}`);
+          } else {
+            setScanNotice('✓ Optical Scan Complete: Live Gemini multimodal vision extraction verified.');
+          }
           return;
         }
       }
       throw new Error(`Server returned HTTP ${response.status}`);
     } catch (err: any) {
       clearTimeout(timeoutId);
-      console.warn('Network or Server inspection unavailable, engaging on-device engine fallback:', err);
-      // Fallback seamlessly to client-side rule evaluation
+      console.warn('Network or Server inspection unavailable, engaging fallback:', err);
+      const isTimeout = err?.name === 'AbortError';
+      const fallbackReason = isTimeout
+        ? 'Gemini multimodal vision extraction timed out after 25s. Showing sample benchmark data for compliance testing.'
+        : `Gemini vision extraction service unavailable (${err?.message || 'Server error'}). Showing sample benchmark data.`;
+
+      // Fallback to client-side rule evaluation
       const fallbackRecord = generateClientInspectionRecord(
         analysisPayloadUrl,
         currentHeight,
@@ -372,9 +387,16 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
         targetCategory,
         currentRole
       );
+      fallbackRecord.isFallback = true;
+      fallbackRecord.fallbackReason = fallbackReason;
+      fallbackRecord.extractionMethod = 'fallback_sample';
+      fallbackRecord.declarations.isFallback = true;
+      fallbackRecord.declarations.fallbackReason = fallbackReason;
+      fallbackRecord.declarations.extractionMethod = 'fallback_sample';
+
       setActiveRecord(fallbackRecord);
       setScanProgressPercent(100);
-      setScanNotice('✓ Optical Scan Complete: Verified with on-device PP-OCRv4 Legal Metrology engine.');
+      setScanNotice(`⚠️ Notice: ${fallbackReason}`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -396,26 +418,24 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Banner & Quick Selector */}
-      <div className="bg-slate-900 text-slate-200 rounded-lg p-5 border border-slate-800 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-        <div className="space-y-1">
+      <div className="bg-white text-slate-800 rounded-lg p-6 border border-gray-200 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30 uppercase tracking-widest">
-              Module 1: Field Analysis
-            </span>
-            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">
-              LM-PCR 2011 Engine
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+              Live Extraction Active
             </span>
           </div>
-          <h2 className="text-xl font-semibold tracking-tight text-white flex items-center gap-2">
-            Package Verification &amp; Declaration Scanner
+          <h2 className="text-xl font-bold tracking-tight text-slate-900">
+            Physical Label Inspection &amp; Compliance Audit
           </h2>
-          <p className="text-xs text-slate-400 max-w-2xl">
+          <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
             Extracts mandatory declarations under Rule 6, computes numeral font height in millimeters against Rule 8 Table thresholds, and assesses statutory compounding liability under Section 36(1).
           </p>
         </div>
 
-        {/* Action Buttons: Camera + Upload + Preset Dropdown */}
-        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+        {/* Action Controls: Primary Open Camera + Secondary Outlines */}
+        <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
           {/* Hidden inputs */}
           <input
             type="file"
@@ -437,60 +457,61 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
             }}
           />
 
+          {/* Primary Action Button: Solid Navy */}
           <button
             onClick={() => setIsRealCameraOpen(true)}
-            className="px-3.5 py-2 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition flex items-center gap-1.5 shadow-lg shadow-amber-500/20 active:scale-95 cursor-pointer"
-            title="Open real physical hardware camera with PaddleOCR reticle"
+            className="px-4 py-2 rounded-md bg-[#003366] hover:bg-[#002244] text-white font-medium text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+            title="Open camera scanner"
           >
-            <Camera className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>Open Real Camera</span>
+            <Camera className="w-3.5 h-3.5" />
+            <span>Open Camera</span>
           </button>
 
+          {/* Secondary Action: Mobile Snap */}
           <button
             onClick={() => cameraInputRef.current?.click()}
-            className="px-3.5 py-2 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition flex items-center gap-1.5 shadow-md shadow-emerald-500/20 active:scale-95 cursor-pointer"
-            title="Capture immediately using native phone camera"
+            className="px-3 py-2 rounded-md bg-white hover:bg-slate-50 text-slate-700 border border-gray-300 font-medium text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+            title="Capture immediately using device camera"
           >
-            <Smartphone className="w-3.5 h-3.5 stroke-[2.5]" />
+            <Smartphone className="w-3.5 h-3.5 text-slate-600" />
             <span>Mobile Snap</span>
           </button>
 
+          {/* Secondary Action: Mobile QR */}
           <button
             onClick={() => setIsMobileModalOpen(true)}
-            className="px-3 py-2 rounded bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 text-xs font-mono font-medium transition flex items-center gap-1.5 shadow-sm cursor-pointer"
-            title="Scan QR Code to open directly on your mobile smartphone"
+            className="px-3 py-2 rounded-md bg-white hover:bg-slate-50 text-slate-700 border border-gray-300 text-xs font-medium transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+            title="Open QR Code for mobile pairing"
           >
-            <QrCode className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Use on Mobile</span>
-            <span className="sm:hidden">Mobile</span>
+            <QrCode className="w-3.5 h-3.5 text-slate-600" />
+            <span className="hidden sm:inline">Mobile QR</span>
+            <span className="sm:hidden">QR</span>
           </button>
 
+          {/* Secondary Action: Upload */}
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="px-3 py-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+            className="px-3 py-2 rounded-md bg-white hover:bg-slate-50 text-slate-700 border border-gray-300 text-xs font-medium transition flex items-center gap-1.5 shadow-xs cursor-pointer"
           >
-            <Upload className="w-3.5 h-3.5 text-amber-400" />
+            <Upload className="w-3.5 h-3.5 text-slate-600" />
             <span>Upload</span>
           </button>
 
-          {/* Quick Dataset Selector for instant demo verification */}
+          {/* Quick Dataset Selector */}
           <div className="relative">
             <select
               value={activeRecord.id}
               onChange={(e) => handlePresetSelect(e.target.value)}
-              className="px-3.5 py-2 rounded bg-amber-500 text-slate-950 font-bold text-xs transition appearance-none pr-8 cursor-pointer shadow-lg shadow-amber-500/20 focus:outline-none"
+              className="px-3 py-2 rounded-md bg-white hover:bg-slate-50 text-slate-700 border border-gray-300 font-medium text-xs transition appearance-none pr-7 cursor-pointer shadow-xs focus:outline-none focus:border-[#003366]"
             >
               {!SEED_INSPECTION_DATASET.some((item) => item.id === activeRecord.id) && (
                 <optgroup label="Active Camera Capture">
                   <option value={activeRecord.id}>
-                    📸 Live Scanned: {activeRecord.productName.slice(0, 22)}
+                    Scanned: {activeRecord.productName.slice(0, 22)}
                   </option>
                 </optgroup>
               )}
-              <optgroup label="Live Camera & New Inspection">
-                <option value="INSP-2026-000">📷 New Camera Scan (Empty Slot)</option>
-              </optgroup>
-              <optgroup label="Compliant Benchmark Commodities">
+              <optgroup label="Benchmark Samples">
                 <option value="INSP-2026-001">Amul Milk 500ml (Compliant)</option>
                 <option value="INSP-2026-002">Parle-G Biscuits 120g (Compliant)</option>
                 <option value="INSP-2026-003">Tata Salt 1kg (Compliant)</option>
@@ -516,78 +537,110 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
         </div>
       </div>
 
+      {/* Fallback Warning or Live Extraction Verification Banner */}
+      {activeRecord.isFallback ? (
+        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r shadow-xs text-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-900 font-sans">
+                  Fallback Benchmark Mode Active
+                </span>
+                <span className="text-[10px] bg-amber-200/80 text-amber-900 font-mono px-2 py-0.5 rounded font-semibold">
+                  Synthetic Benchmark
+                </span>
+              </div>
+              <p className="text-xs text-amber-800 leading-relaxed">
+                {activeRecord.fallbackReason ||
+                  'Gemini multimodal vision extraction could not process this image or GEMINI_API_KEY is not set. Sample benchmark declarations are being displayed to demonstrate the Legal Metrology rule engine.'}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => runAnalysis(activeRecord.imageUrl, packageHeightMm)}
+            className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded shrink-0 flex items-center gap-1.5 transition cursor-pointer"
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> Retry Gemini Extraction
+          </button>
+        </div>
+      ) : null}
+
       {/* Main Grid: Visual Package Stage (Left) & Legal Verification Panel (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* LEFT COLUMN: Visual Inspection Stage & Calibration */}
-        <div className="lg:col-span-5 space-y-4">
-          {/* Package Canvas Card - Geometric Balance HUD */}
-          <div className="bg-slate-900 rounded-lg border border-slate-800 shadow-sm overflow-hidden p-5 flex flex-col">
+        <div className="lg:col-span-5 space-y-5">
+          {/* Package Canvas Card */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-xs overflow-hidden p-5 flex flex-col">
             {/* Scan Notification Banner */}
             {scanNotice && (
-              <div className="mb-3 px-3 py-2 bg-emerald-500/15 border border-emerald-500/40 rounded text-emerald-300 text-xs font-mono flex items-center justify-between gap-2 shadow-sm animate-in fade-in">
+              <div className="mb-3 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded text-emerald-800 text-xs flex items-center justify-between gap-2 animate-in fade-in">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>{scanNotice}</span>
                 </div>
                 <button
                   onClick={() => setScanNotice(null)}
-                  className="text-emerald-400/70 hover:text-emerald-200 text-xs px-1 cursor-pointer"
+                  className="text-emerald-700 hover:text-emerald-900 text-xs px-1 cursor-pointer font-bold"
                 >
                   ✕
                 </button>
               </div>
             )}
 
-            {/* HUD Header */}
+            {/* PDP Header - Clean sans-serif title with single calibration meta */}
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-bold uppercase text-slate-400 tracking-widest flex items-center gap-2">
-                <Eye className="w-3.5 h-3.5 text-amber-500" />
-                Principal Display Panel (PDP)
-              </h3>
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-[#003366]" />
+                  Principal Display Panel (PDP)
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Label detection surface &amp; bounding zones
+                </p>
+              </div>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsRealCameraOpen(true)}
-                  className="text-[10px] bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded border border-amber-500/30 font-mono font-semibold flex items-center gap-1 transition cursor-pointer"
-                  title="Open real hardware camera"
-                >
-                  <Camera className="w-3 h-3" /> Live Camera
-                </button>
-                <span className="text-[10px] bg-green-500/10 text-green-400 px-2 py-0.5 rounded border border-green-500/20 font-mono font-semibold">
-                  PP-OCRv4 LIVE
+                <span className="text-xs text-slate-500 font-medium bg-slate-50 border border-gray-200 px-2.5 py-1 rounded">
+                  {packageHeightMm} × {packageWidthMm} mm
                 </span>
+                {activeRecord.isFallback && (
+                  <span className="text-[11px] bg-amber-50 text-amber-800 px-2 py-0.5 rounded border border-amber-200">
+                    Fallback Sample
+                  </span>
+                )}
               </div>
             </div>
 
-            {/* Label Visual Area with interactive Bounding Box Overlay & Geometric Grid */}
-            <div className="bg-black rounded-lg border border-slate-700 relative overflow-hidden min-h-[400px] flex items-center justify-center p-3">
-              {/* Geometric Radial Mesh Background */}
-              <div className="absolute inset-0 opacity-40 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none"></div>
+            {/* Label Visual Area with interactive Bounding Box Overlay - Light Clean Government Theme */}
+            <div className="bg-slate-100 rounded-lg border border-gray-200 relative overflow-hidden min-h-[400px] flex items-center justify-center p-3">
+              {/* Subtle grid pattern */}
+              <div className="absolute inset-0 opacity-25 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
 
               {isAnalyzing && (
-                <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-xs z-30 flex flex-col items-center justify-center text-white p-6 text-center space-y-3">
+                <div className="absolute inset-0 bg-white/90 backdrop-blur-xs z-30 flex flex-col items-center justify-center text-slate-900 p-6 text-center space-y-3">
                   <div className="relative">
-                    <RefreshCw className="w-8 h-8 animate-spin text-amber-500" />
-                    <Scan className="w-4 h-4 text-amber-300 absolute inset-0 m-auto animate-pulse" />
+                    <RefreshCw className="w-8 h-8 animate-spin text-[#003366]" />
+                    <Scan className="w-4 h-4 text-[#FF9933] absolute inset-0 m-auto animate-pulse" />
                   </div>
                   <div className="space-y-1 max-w-xs">
-                    <div className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">
+                    <div className="text-xs font-semibold text-[#003366]">
                       {scanStepText}
                     </div>
-                    <p className="text-[11px] text-slate-400 font-mono">
+                    <p className="text-xs text-slate-500">
                       Evaluating Rule 6 declarations &amp; Rule 8 numeral heights in real time...
                     </p>
                   </div>
                   {/* Visual Progress Bar */}
-                  <div className="w-48 bg-slate-800 rounded-full h-1.5 overflow-hidden border border-slate-700">
+                  <div className="w-48 bg-slate-200 rounded-full h-1.5 overflow-hidden">
                     <div
-                      className="bg-amber-500 h-full rounded-full transition-all duration-300"
+                      className="bg-[#003366] h-full rounded-full transition-all duration-300"
                       style={{ width: `${scanProgressPercent}%` }}
                     ></div>
                   </div>
                 </div>
               )}
 
-              <div className="relative max-w-full max-h-[460px] rounded overflow-hidden bg-slate-950 border border-slate-800 shadow-2xl">
+              <div className="relative max-w-full max-h-[460px] rounded overflow-hidden bg-white border border-gray-200 shadow-sm">
                 <img
                   src={activeRecord.imageUrl}
                   alt={activeRecord.productName}
@@ -625,53 +678,53 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
 
             {/* Geometric Telemetry Row */}
             <div className="mt-3 grid grid-cols-3 gap-2">
-              <div className="h-9 border border-slate-800 bg-slate-950 rounded flex items-center justify-center text-[11px] text-slate-400 font-mono">
-                Auto-Focus: <span className="text-emerald-400 font-semibold ml-1">ON</span>
+              <div className="h-9 border border-gray-200 bg-slate-50 rounded flex items-center justify-center text-[11px] text-slate-700 font-mono font-medium">
+                Auto-Focus: <span className="text-emerald-700 font-bold ml-1">ON</span>
               </div>
-              <div className="h-9 border border-slate-800 bg-slate-950 rounded flex items-center justify-center text-[11px] text-slate-400 font-mono">
-                Calib Ratio: <span className="text-amber-400 font-semibold ml-1">1:0.32</span>
+              <div className="h-9 border border-gray-200 bg-slate-50 rounded flex items-center justify-center text-[11px] text-slate-700 font-mono font-medium">
+                Calib Ratio: <span className="text-[#003366] font-bold ml-1">1:0.32</span>
               </div>
-              <div className="h-9 border border-slate-800 bg-slate-950 rounded flex items-center justify-center text-[11px] text-slate-400 font-mono">
-                Grid: <span className="text-slate-200 font-semibold ml-1">Visible</span>
+              <div className="h-9 border border-gray-200 bg-slate-50 rounded flex items-center justify-center text-[11px] text-slate-700 font-mono font-medium">
+                Grid: <span className="text-slate-900 font-bold ml-1">Visible</span>
               </div>
             </div>
 
             {/* Dimension Calibration Control */}
-            <div className="mt-3 p-3.5 bg-slate-950 border border-slate-800 rounded-lg space-y-2.5">
+            <div className="mt-3 p-3.5 bg-slate-50 border border-gray-200 rounded-lg space-y-2.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 font-mono">
-                  <Sliders className="w-3 h-3 text-amber-500" />
-                  Rule 8 Height Calibrator (mm):
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-[#003366]" />
+                  Rule 8 Height Calibration (mm):
                 </label>
                 <button
                   onClick={() => runAnalysis(activeRecord.imageUrl, packageHeightMm)}
-                  className="text-[11px] font-semibold text-amber-400 hover:text-amber-300 transition flex items-center gap-1 font-mono"
+                  className="text-xs font-medium text-[#003366] hover:text-[#002244] transition flex items-center gap-1 cursor-pointer"
                 >
-                  <RefreshCw className="w-3 h-3" /> Re-calibrate
+                  <RefreshCw className="w-3 h-3" /> Recalibrate
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
-                  <span className="text-slate-500 text-[10px] uppercase tracking-wider font-mono block">Package Height (mm):</span>
+                  <span className="text-slate-600 text-xs block font-medium">Package Height (mm):</span>
                   <input
                     type="number"
                     value={packageHeightMm}
                     onChange={(e) => setPackageHeightMm(Number(e.target.value))}
                     min={20}
                     max={1500}
-                    className="w-full mt-1 px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs font-mono font-semibold text-amber-400 focus:outline-none focus:border-amber-500"
+                    className="w-full mt-1 px-3 py-1.5 bg-white border border-gray-300 rounded text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#003366]"
                   />
                 </div>
                 <div>
-                  <span className="text-slate-500 text-[10px] uppercase tracking-wider font-mono block">Package Width (mm):</span>
+                  <span className="text-slate-600 text-xs block font-medium">Package Width (mm):</span>
                   <input
                     type="number"
                     value={packageWidthMm}
                     onChange={(e) => setPackageWidthMm(Number(e.target.value))}
                     min={20}
                     max={1500}
-                    className="w-full mt-1 px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs font-mono font-semibold text-amber-400 focus:outline-none focus:border-amber-500"
+                    className="w-full mt-1 px-3 py-1.5 bg-white border border-gray-300 rounded text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#003366]"
                   />
                 </div>
               </div>
@@ -679,44 +732,44 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
           </div>
 
           {/* Commodity Details Quick Card */}
-          <div className="bg-slate-900 rounded-lg p-4 border border-slate-800 shadow-sm text-xs space-y-2">
-            <div className="font-semibold text-white flex items-center justify-between">
-              <span>{activeRecord.productName}</span>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 font-mono text-slate-300 border border-slate-700">
+          <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-xs text-xs space-y-2">
+            <div className="font-semibold text-slate-900 flex items-center justify-between">
+              <span className="text-sm">{activeRecord.productName}</span>
+              <span className="text-xs px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-gray-200 font-medium">
                 {activeRecord.category}
               </span>
             </div>
-            <div className="text-slate-400 text-[11px] leading-relaxed">
-              <strong className="text-slate-300">Manufacturer:</strong> {declarations.manufacturerName || 'Not declared'}<br />
-              <strong className="text-slate-300">Customer Helpline:</strong> {declarations.consumerCarePhone || declarations.consumerCareEmail || 'Omitted'}
+            <div className="text-slate-600 text-xs leading-relaxed space-y-1 pt-1">
+              <div><span className="font-medium text-slate-800">Manufacturer:</span> {declarations.manufacturerName || 'Not declared'}</div>
+              <div><span className="font-medium text-slate-800">Customer Helpline:</span> {declarations.consumerCarePhone || declarations.consumerCareEmail || 'Omitted'}</div>
             </div>
           </div>
         </div>
 
         {/* RIGHT COLUMN: Legal Compliance Findings & Statutory Assessment */}
-        <div className="lg:col-span-7 space-y-4">
-          {/* Compliance Summary Geometric Card */}
-          <div className="bg-slate-900 rounded-lg p-5 border border-slate-800 shadow-sm">
-            <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest mb-4">
+        <div className="lg:col-span-7 space-y-5">
+          {/* Compliance Summary Card */}
+          <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-xs">
+            <h3 className="text-sm font-semibold text-slate-900 mb-4">
               Statutory Compliance Summary
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
               {/* Composite Score Block */}
-              <div className="md:col-span-4 h-32 border-2 border-slate-800 rounded-lg bg-slate-950 flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="md:col-span-4 h-32 border border-gray-200 rounded-lg bg-slate-50 flex flex-col items-center justify-center relative overflow-hidden">
                 <div
                   className={`text-3xl font-bold font-mono ${
-                    hasViolations ? 'text-amber-500' : 'text-emerald-400'
+                    hasViolations ? 'text-amber-600' : 'text-emerald-700'
                   }`}
                 >
                   {hasViolations ? `${Math.max(10, 100 - noticeGrading.violationCount * 25)}%` : '100%'}
                 </div>
-                <div className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">
+                <div className="text-xs text-slate-600 mt-1 font-medium">
                   Compliance Score
                 </div>
                 <div
-                  className={`absolute bottom-0 left-0 h-1 transition-all ${
-                    hasViolations ? 'bg-amber-500' : 'bg-emerald-500'
+                  className={`absolute bottom-0 left-0 h-1.5 transition-all ${
+                    hasViolations ? 'bg-[#FF9933]' : 'bg-emerald-600'
                   }`}
                   style={{
                     width: `${hasViolations ? Math.max(10, 100 - noticeGrading.violationCount * 25) : 100}%`,
@@ -729,28 +782,28 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
                 <div className="flex items-center justify-between gap-2">
                   <div>
                     <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono uppercase tracking-wider ${
+                      className={`px-2.5 py-1 rounded text-xs font-medium ${
                         hasViolations
                           ? noticeGrading.grade === 'SEVERE'
-                            ? 'bg-red-500/10 text-red-400 border border-red-500/30'
-                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                          : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                            ? 'bg-red-50 text-red-800 border border-red-200'
+                            : 'bg-amber-50 text-amber-800 border border-amber-200'
+                          : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                       }`}
                     >
                       {hasViolations ? `Notice Grade: ${noticeGrading.grade}` : 'Verified Compliant'}
                     </span>
-                    <span className="text-[11px] text-slate-500 font-mono ml-2">
+                    <span className="text-xs text-slate-500 ml-2">
                       Sec 36(1) Assessment
                     </span>
                   </div>
 
                   <div className="text-right">
-                    <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                    <div className="text-xs font-medium text-slate-600">
                       Compounding Fine
                     </div>
                     <div
                       className={`text-xl font-bold font-mono ${
-                        hasViolations ? 'text-amber-500' : 'text-emerald-400'
+                        hasViolations ? 'text-amber-600' : 'text-emerald-700'
                       }`}
                     >
                       ₹{noticeGrading.compoundingPenaltyInr.toLocaleString('en-IN')}
@@ -758,25 +811,25 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className="text-xs text-slate-600 leading-relaxed">
                   {hasViolations
                     ? `${noticeGrading.violationCount} contravention(s) detected under Chapter II PCR 2011. Compoundable under Section 36(1) of the Legal Metrology Act, 2009.`
                     : 'All mandatory declarations under Rule 6 and minimum numeral heights under Rule 8 Table satisfied.'}
                 </p>
 
-                {/* Actions */}
-                <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-800">
+                {/* Actions: Primary Navy + Secondary Outline */}
+                <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-gray-100">
                   <button
                     onClick={() => onOpenNoticeModal(activeRecord)}
-                    className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded text-xs font-semibold transition flex items-center gap-1.5"
+                    className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-gray-300 text-slate-700 rounded-md text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-xs"
                   >
-                    <FileText className="w-3.5 h-3.5 text-amber-400" />
+                    <FileText className="w-3.5 h-3.5 text-slate-600" />
                     Notice Memorandum
                   </button>
 
                   <button
                     onClick={() => generateInspectionPdf(activeRecord)}
-                    className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-xs uppercase tracking-wider transition flex items-center gap-1.5 shadow-lg shadow-amber-500/20"
+                    className="px-4 py-2 bg-[#003366] hover:bg-[#002244] text-white font-medium rounded-md text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" />
                     Export PDF Notice
@@ -786,96 +839,96 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
             </div>
           </div>
 
-          {/* Tabbed Inspection View - Geometric Balance */}
-          <div className="bg-slate-900 rounded-lg border border-slate-800 shadow-sm overflow-hidden">
+          {/* Tabbed Inspection View */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-xs overflow-hidden">
             {/* Tabs Bar */}
-            <div className="flex border-b border-slate-800 bg-slate-950 text-xs font-medium text-slate-400 overflow-x-auto">
+            <div className="flex border-b border-gray-200 bg-slate-50 text-xs font-medium text-slate-600 overflow-x-auto">
               <button
                 onClick={() => setInspectionTab('rule6')}
-                className={`px-4 py-3 border-b-2 font-semibold transition whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-4 py-3 border-b-2 transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
                   inspectionTab === 'rule6'
-                    ? 'border-amber-500 text-amber-400 bg-slate-900'
-                    : 'border-transparent hover:text-slate-200 hover:bg-slate-900/50'
+                    ? 'border-[#003366] text-[#003366] bg-white font-semibold'
+                    : 'border-transparent hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
                 <FileText className="w-3.5 h-3.5" />
-                Rule 6 Declarations Checklist
+                Rule 6 Declarations
               </button>
 
               <button
                 onClick={() => setInspectionTab('font8')}
-                className={`px-4 py-3 border-b-2 font-semibold transition whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-4 py-3 border-b-2 transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
                   inspectionTab === 'font8'
-                    ? 'border-amber-500 text-amber-400 bg-slate-900'
-                    : 'border-transparent hover:text-slate-200 hover:bg-slate-900/50'
+                    ? 'border-[#003366] text-[#003366] bg-white font-semibold'
+                    : 'border-transparent hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
                 <Scale className="w-3.5 h-3.5" />
-                Rule 8 Font Size Table (mm)
+                Rule 8 Font Height (mm)
               </button>
 
               <button
                 onClick={() => setInspectionTab('exemption')}
-                className={`px-4 py-3 border-b-2 font-semibold transition whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-4 py-3 border-b-2 transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
                   inspectionTab === 'exemption'
-                    ? 'border-amber-500 text-amber-400 bg-slate-900'
-                    : 'border-transparent hover:text-slate-200 hover:bg-slate-900/50'
+                    ? 'border-[#003366] text-[#003366] bg-white font-semibold'
+                    : 'border-transparent hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
-                Rule 26 Exemption Gate
+                Rule 26 Exemptions
               </button>
 
               <button
                 onClick={() => setInspectionTab('ocr')}
-                className={`px-4 py-3 border-b-2 font-semibold transition whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-4 py-3 border-b-2 transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
                   inspectionTab === 'ocr'
-                    ? 'border-amber-500 text-amber-400 bg-slate-900'
-                    : 'border-transparent hover:text-slate-200 hover:bg-slate-900/50'
+                    ? 'border-[#003366] text-[#003366] bg-white font-semibold'
+                    : 'border-transparent hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
                 <Scan className="w-3.5 h-3.5" />
-                PaddleOCR PP-OCRv4 Engine
+                Vision Telemetry
               </button>
             </div>
 
             {/* TAB CONTENT: Rule 6 Mandatory Declarations */}
             {inspectionTab === 'rule6' && (
-              <div className="p-5 space-y-3">
-                <div className="text-xs text-slate-500 uppercase tracking-widest font-mono mb-3">
-                  Mandatory Verification: PCR 2011 Rule 6(1)
+              <div className="p-5 space-y-3 bg-white">
+                <div className="text-xs text-slate-500 font-medium mb-3">
+                  Statutory verification under Legal Metrology (Packaged Commodities) Rules, 2011, Rule 6(1):
                 </div>
 
                 <div className="space-y-3">
                   {/* 1. MRP */}
                   <div
-                    className={`p-4 bg-slate-800/50 border-l-2 rounded-r transition flex items-start justify-between gap-3 ${
+                    className={`p-4 bg-slate-50 border border-gray-200 border-l-4 rounded-md transition flex items-start justify-between gap-3 ${
                       declarations.mrpValue && declarations.mrpValue > 0
-                        ? 'border-amber-500'
-                        : 'border-red-500'
+                        ? 'border-l-[#003366]'
+                        : 'border-l-red-500'
                     }`}
                   >
                     <div className="space-y-0.5">
-                      <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider font-mono">
-                        Rule 6(1)(e): Maximum Retail Price (MRP)
+                      <p className="text-xs text-slate-500 font-medium">
+                        Rule 6(1)(e) • Maximum Retail Price (MRP)
                       </p>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-mono text-amber-500 font-semibold">
-                          {declarations.mrpValue ? `₹${declarations.mrpValue.toFixed(2)}` : 'MISSING'}
+                        <span className="text-xl font-mono text-[#003366] font-bold">
+                          {declarations.mrpValue ? `₹${declarations.mrpValue.toFixed(2)}` : 'Missing'}
                         </span>
-                        <span className="text-[11px] text-slate-400">
+                        <span className="text-xs text-slate-600">
                           {declarations.mrpText || 'Not declared on packaging'}
                         </span>
                       </div>
                     </div>
                     <div>
                       {declarations.mrpValue && declarations.mrpValue > 0 ? (
-                        <span className="text-[11px] font-mono font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" /> VERIFIED
+                        <span className="text-xs font-medium text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Verified
                         </span>
                       ) : (
-                        <span className="text-[11px] font-mono font-semibold text-red-400 bg-red-500/10 px-2.5 py-1 rounded border border-red-500/20 flex items-center gap-1">
-                          <AlertOctagon className="w-3 h-3" /> VIOLATION
+                        <span className="text-xs font-medium text-red-800 bg-red-50 px-2.5 py-1 rounded border border-red-200 flex items-center gap-1">
+                          <AlertOctagon className="w-3.5 h-3.5 text-red-600" /> Non-Compliant
                         </span>
                       )}
                     </div>
@@ -883,29 +936,29 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
 
                   {/* 2. Inclusive of all taxes */}
                   <div
-                    className={`p-4 bg-slate-800/50 border-l-2 rounded-r transition flex items-start justify-between gap-3 ${
-                      declarations.hasInclusiveOfTaxes ? 'border-slate-600' : 'border-red-500'
+                    className={`p-4 bg-slate-50 border border-gray-200 border-l-4 rounded-md transition flex items-start justify-between gap-3 ${
+                      declarations.hasInclusiveOfTaxes ? 'border-l-[#003366]' : 'border-l-red-500'
                     }`}
                   >
                     <div className="space-y-0.5">
-                      <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider font-mono">
-                        Rule 6(1)(e): "Inclusive of all taxes"
+                      <p className="text-xs text-slate-500 font-medium">
+                        Rule 6(1)(e) • "Inclusive of all taxes"
                       </p>
-                      <div className="text-sm font-semibold text-slate-200">
+                      <div className="text-sm font-semibold text-slate-900">
                         {declarations.hasInclusiveOfTaxes ? 'Present & Verified' : 'Statement Omitted'}
                       </div>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-xs text-slate-500">
                         Ensures consumers are not charged arbitrary tax additions over MRP.
                       </p>
                     </div>
                     <div>
                       {declarations.hasInclusiveOfTaxes ? (
-                        <span className="text-[11px] font-mono font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" /> VERIFIED
+                        <span className="text-xs font-medium text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Verified
                         </span>
                       ) : (
-                        <span className="text-[11px] font-mono font-semibold text-red-400 bg-red-500/10 px-2.5 py-1 rounded border border-red-500/20 flex items-center gap-1">
-                          <AlertOctagon className="w-3 h-3" /> VIOLATION
+                        <span className="text-xs font-medium text-red-800 bg-red-50 px-2.5 py-1 rounded border border-red-200 flex items-center gap-1">
+                          <AlertOctagon className="w-3.5 h-3.5 text-red-600" /> Non-Compliant
                         </span>
                       )}
                     </div>
@@ -913,29 +966,29 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
 
                   {/* 3. Net Quantity */}
                   <div
-                    className={`p-4 bg-slate-800/50 border-l-2 rounded-r transition flex items-start justify-between gap-3 ${
-                      declarations.netQuantityValue ? 'border-slate-600' : 'border-red-500'
+                    className={`p-4 bg-slate-50 border border-gray-200 border-l-4 rounded-md transition flex items-start justify-between gap-3 ${
+                      declarations.netQuantityValue ? 'border-l-[#003366]' : 'border-l-red-500'
                     }`}
                   >
                     <div className="space-y-0.5">
-                      <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider font-mono">
-                        Rule 6(1)(c): Net Quantity Declaration
+                      <p className="text-xs text-slate-500 font-medium">
+                        Rule 6(1)(c) • Net Quantity Declaration
                       </p>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-xl font-mono text-slate-200 font-semibold">
+                        <span className="text-lg font-mono text-slate-900 font-bold">
                           {declarations.netQuantityText || 'Missing'}
                         </span>
-                        <span className="text-[11px] text-slate-400">Standard metric unit</span>
+                        <span className="text-xs text-slate-500">Standard metric unit</span>
                       </div>
                     </div>
                     <div>
                       {declarations.netQuantityValue ? (
-                        <span className="text-[11px] font-mono font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" /> VERIFIED
+                        <span className="text-xs font-medium text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Verified
                         </span>
                       ) : (
-                        <span className="text-[11px] font-mono font-semibold text-red-400 bg-red-500/10 px-2.5 py-1 rounded border border-red-500/20 flex items-center gap-1">
-                          <AlertOctagon className="w-3 h-3" /> VIOLATION
+                        <span className="text-xs font-medium text-red-800 bg-red-50 px-2.5 py-1 rounded border border-red-200 flex items-center gap-1">
+                          <AlertOctagon className="w-3.5 h-3.5 text-red-600" /> Non-Compliant
                         </span>
                       )}
                     </div>
@@ -943,31 +996,31 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
 
                   {/* 4. Month & Year of Mfg/Pkg */}
                   <div
-                    className={`p-4 bg-slate-800/50 border-l-2 rounded-r transition flex items-start justify-between gap-3 ${
+                    className={`p-4 bg-slate-50 border border-gray-200 border-l-4 rounded-md transition flex items-start justify-between gap-3 ${
                       declarations.mfgMonthYear && declarations.mfgMonthYear.length >= 4
-                        ? 'border-slate-600'
-                        : 'border-red-500'
+                        ? 'border-l-[#003366]'
+                        : 'border-l-red-500'
                     }`}
                   >
                     <div className="space-y-0.5">
-                      <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider font-mono">
-                        Rule 6(1)(d): Month &amp; Year of Manufacture / Packing
+                      <p className="text-xs text-slate-500 font-medium">
+                        Rule 6(1)(d) • Month &amp; Year of Manufacture / Packing
                       </p>
-                      <div className="text-xl font-mono text-slate-200 font-semibold">
+                      <div className="text-base font-mono text-slate-900 font-bold">
                         {declarations.mfgMonthYear || 'Not declared'}
                       </div>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-xs text-slate-500">
                         Consumer batch and expiry traceability requirement.
                       </p>
                     </div>
                     <div>
                       {declarations.mfgMonthYear && declarations.mfgMonthYear.length >= 4 ? (
-                        <span className="text-[11px] font-mono font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" /> VERIFIED
+                        <span className="text-xs font-medium text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Verified
                         </span>
                       ) : (
-                        <span className="text-[11px] font-mono font-semibold text-red-400 bg-red-500/10 px-2.5 py-1 rounded border border-red-500/20 flex items-center gap-1">
-                          <AlertOctagon className="w-3 h-3" /> VIOLATION
+                        <span className="text-xs font-medium text-red-800 bg-red-50 px-2.5 py-1 rounded border border-red-200 flex items-center gap-1">
+                          <AlertOctagon className="w-3.5 h-3.5 text-red-600" /> Non-Compliant
                         </span>
                       )}
                     </div>
@@ -975,31 +1028,31 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
 
                   {/* 5. Manufacturer / Packer Address */}
                   <div
-                    className={`p-4 bg-slate-800/50 border-l-2 rounded-r transition flex items-start justify-between gap-3 ${
+                    className={`p-4 bg-slate-50 border border-gray-200 border-l-4 rounded-md transition flex items-start justify-between gap-3 ${
                       declarations.manufacturerName && declarations.manufacturerName.length > 3
-                        ? 'border-slate-600'
-                        : 'border-red-500'
+                        ? 'border-l-[#003366]'
+                        : 'border-l-red-500'
                     }`}
                   >
                     <div className="space-y-0.5">
-                      <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider font-mono">
-                        Rule 6(1)(a): Manufacturer / Packer Name &amp; Address
+                      <p className="text-xs text-slate-500 font-medium">
+                        Rule 6(1)(a) • Manufacturer / Packer Name &amp; Address
                       </p>
-                      <div className="text-sm font-semibold text-slate-200">
+                      <div className="text-sm font-semibold text-slate-900">
                         {declarations.manufacturerName || 'Missing'}
                       </div>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-xs text-slate-500">
                         {declarations.manufacturerAddress || 'Full postal address required'}
                       </p>
                     </div>
                     <div>
                       {declarations.manufacturerName && declarations.manufacturerName.length > 3 ? (
-                        <span className="text-[11px] font-mono font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" /> VERIFIED
+                        <span className="text-xs font-medium text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Verified
                         </span>
                       ) : (
-                        <span className="text-[11px] font-mono font-semibold text-red-400 bg-red-500/10 px-2.5 py-1 rounded border border-red-500/20 flex items-center gap-1">
-                          <AlertOctagon className="w-3 h-3" /> VIOLATION
+                        <span className="text-xs font-medium text-red-800 bg-red-50 px-2.5 py-1 rounded border border-red-200 flex items-center gap-1">
+                          <AlertOctagon className="w-3.5 h-3.5 text-red-600" /> Non-Compliant
                         </span>
                       )}
                     </div>
@@ -1007,31 +1060,31 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
 
                   {/* 6. Consumer Care Helpline */}
                   <div
-                    className={`p-4 bg-slate-800/50 border-l-2 rounded-r transition flex items-start justify-between gap-3 ${
+                    className={`p-4 bg-slate-50 border border-gray-200 border-l-4 rounded-md transition flex items-start justify-between gap-3 ${
                       declarations.consumerCarePhone || declarations.consumerCareEmail
-                        ? 'border-slate-600'
-                        : 'border-red-500'
+                        ? 'border-l-[#003366]'
+                        : 'border-l-red-500'
                     }`}
                   >
                     <div className="space-y-0.5">
-                      <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider font-mono">
-                        Rule 6(1)(h): Consumer Care Cell (Phone / Email)
+                      <p className="text-xs text-slate-500 font-medium">
+                        Rule 6(1)(h) • Consumer Care Cell (Phone / Email)
                       </p>
-                      <div className="text-sm font-mono text-slate-200 font-semibold">
+                      <div className="text-sm text-slate-900 font-semibold">
                         {declarations.consumerCarePhone || declarations.consumerCareEmail || 'Partially Missing'}
                       </div>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-xs text-slate-500">
                         Mandatory grievance address for consumer redressal.
                       </p>
                     </div>
                     <div>
                       {declarations.consumerCarePhone || declarations.consumerCareEmail ? (
-                        <span className="text-[11px] font-mono font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" /> VERIFIED
+                        <span className="text-xs font-medium text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Verified
                         </span>
                       ) : (
-                        <span className="text-[11px] font-mono font-semibold text-red-400 bg-red-500/10 px-2.5 py-1 rounded border border-red-500/20 flex items-center gap-1">
-                          <AlertOctagon className="w-3 h-3" /> VIOLATION
+                        <span className="text-xs font-medium text-red-800 bg-red-50 px-2.5 py-1 rounded border border-red-200 flex items-center gap-1">
+                          <AlertOctagon className="w-3.5 h-3.5 text-red-600" /> Non-Compliant
                         </span>
                       )}
                     </div>
@@ -1039,31 +1092,31 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
 
                   {/* 7. Country of Origin */}
                   <div
-                    className={`p-4 bg-slate-800/50 border-l-2 rounded-r transition flex items-start justify-between gap-3 ${
+                    className={`p-4 bg-slate-50 border border-gray-200 border-l-4 rounded-md transition flex items-start justify-between gap-3 ${
                       declarations.countryOfOrigin && declarations.countryOfOrigin.length >= 2
-                        ? 'border-slate-600'
-                        : 'border-red-500'
+                        ? 'border-l-[#003366]'
+                        : 'border-l-red-500'
                     }`}
                   >
                     <div className="space-y-0.5">
-                      <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider font-mono">
-                        Rule 6(1)(g): Country of Origin Declaration
+                      <p className="text-xs text-slate-500 font-medium">
+                        Rule 6(1)(g) • Country of Origin Declaration
                       </p>
-                      <div className="text-sm font-mono text-slate-200 font-semibold">
-                        {declarations.countryOfOrigin || 'NOT DECLARED'}
+                      <div className="text-sm font-semibold text-slate-900">
+                        {declarations.countryOfOrigin || 'Not Declared'}
                       </div>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-xs text-slate-500">
                         Mandated under PCR Amendment 2017/2020.
                       </p>
                     </div>
                     <div>
                       {declarations.countryOfOrigin && declarations.countryOfOrigin.length >= 2 ? (
-                        <span className="text-[11px] font-mono font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" /> VERIFIED
+                        <span className="text-xs font-medium text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Verified
                         </span>
                       ) : (
-                        <span className="text-[11px] font-mono font-semibold text-red-400 bg-red-500/10 px-2.5 py-1 rounded border border-red-500/20 flex items-center gap-1">
-                          <AlertOctagon className="w-3 h-3" /> VIOLATION
+                        <span className="text-xs font-medium text-red-800 bg-red-50 px-2.5 py-1 rounded border border-red-200 flex items-center gap-1">
+                          <AlertOctagon className="w-3.5 h-3.5 text-red-600" /> Non-Compliant
                         </span>
                       )}
                     </div>
@@ -1074,56 +1127,56 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
 
             {/* TAB CONTENT: Rule 8 Font Size in mm */}
             {inspectionTab === 'font8' && (
-              <div className="p-5 space-y-4">
+              <div className="p-5 space-y-4 bg-white">
                 <div className="flex items-center justify-between">
-                  <div className="text-xs text-slate-400 font-mono">
+                  <div className="text-xs text-slate-600">
                     Numeral &amp; Letter height verification based on net weight/measure under Rule 8 Table 1:
                   </div>
-                  <span className="text-[10px] font-mono bg-slate-800 text-amber-400 px-2.5 py-1 rounded border border-slate-700">
-                    Calibration: {packageHeightMm}mm Package Height
+                  <span className="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded border border-gray-200 font-medium">
+                    Calibration: {packageHeightMm} mm Package Height
                   </span>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto border border-gray-200 rounded-lg">
                   <table className="w-full text-xs text-left">
-                    <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800 font-mono uppercase tracking-wider text-[10px]">
+                    <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-gray-200 text-xs">
                       <tr>
                         <th className="py-2.5 px-3">Field / Declaration</th>
-                        <th className="py-2.5 px-3 font-mono">Measured Height</th>
-                        <th className="py-2.5 px-3 font-mono">Statutory Min</th>
-                        <th className="py-2.5 px-3">Statutory Rule Ref</th>
+                        <th className="py-2.5 px-3">Measured Height</th>
+                        <th className="py-2.5 px-3">Statutory Min</th>
+                        <th className="py-2.5 px-3">Statutory Rule</th>
                         <th className="py-2.5 px-3 text-right">Result</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800">
+                    <tbody className="divide-y divide-gray-200">
                       {fontValidations.map((fontItem, idx) => (
-                        <tr key={idx} className={fontItem.isCompliant ? '' : 'bg-red-950/20'}>
-                          <td className="py-3 px-3 font-medium text-slate-200">
+                        <tr key={idx} className={fontItem.isCompliant ? '' : 'bg-red-50/60'}>
+                          <td className="py-3 px-3 font-medium text-slate-900">
                             {fontItem.fieldName}
                           </td>
                           <td className="py-3 px-3 font-mono font-bold">
                             <span
                               className={
-                                fontItem.isCompliant ? 'text-amber-400' : 'text-red-400 font-black'
+                                fontItem.isCompliant ? 'text-[#003366]' : 'text-red-700 font-bold'
                               }
                             >
                               {fontItem.measuredHeightMm.toFixed(1)} mm
                             </span>
                           </td>
-                          <td className="py-3 px-3 font-mono text-slate-400">
+                          <td className="py-3 px-3 font-mono text-slate-700">
                             {fontItem.requiredMinHeightMm.toFixed(1)} mm
                           </td>
-                          <td className="py-3 px-3 text-[11px] text-slate-500 font-mono">
+                          <td className="py-3 px-3 text-xs text-slate-500">
                             {fontItem.statutoryRule}
                           </td>
                           <td className="py-3 px-3 text-right">
                             {fontItem.isCompliant ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                                PASS
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                Pass
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold font-mono text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
-                                NON-COMPLIANT
+                              <span className="inline-flex items-center gap-1 text-xs font-medium text-red-800 bg-red-50 px-2 py-0.5 rounded border border-red-200">
+                                Non-Compliant
                               </span>
                             )}
                           </td>
@@ -1133,22 +1186,22 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
                   </table>
                 </div>
 
-                <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-lg text-[11px] text-slate-400 space-y-1 font-mono">
-                  <div className="font-bold text-slate-300 uppercase tracking-wider text-[10px]">
+                <div className="p-4 bg-slate-50 border border-gray-200 rounded-lg text-xs text-slate-700 space-y-2">
+                  <div className="font-semibold text-slate-800 text-xs">
                     Legal Metrology Font Size Reference Table (Rule 8 Table 1):
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-[10px]">
-                    <div className="bg-slate-900 p-2 rounded border border-slate-800">
-                      ≤ 50g / ml: <strong className="text-amber-400">1.0 mm</strong>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
+                    <div className="bg-white p-2.5 rounded border border-gray-200 text-slate-700">
+                      ≤ 50g / ml: <strong className="text-[#003366] font-semibold">1.0 mm</strong>
                     </div>
-                    <div className="bg-slate-900 p-2 rounded border border-slate-800">
-                      50g - 200g: <strong className="text-amber-400">2.0 mm</strong>
+                    <div className="bg-white p-2.5 rounded border border-gray-200 text-slate-700">
+                      50g - 200g: <strong className="text-[#003366] font-semibold">2.0 mm</strong>
                     </div>
-                    <div className="bg-slate-900 p-2 rounded border border-slate-800">
-                      200g - 1kg: <strong className="text-amber-400">4.0 mm</strong>
+                    <div className="bg-white p-2.5 rounded border border-gray-200 text-slate-700">
+                      200g - 1kg: <strong className="text-[#003366] font-semibold">4.0 mm</strong>
                     </div>
-                    <div className="bg-slate-900 p-2 rounded border border-slate-800">
-                      &gt; 1kg / L: <strong className="text-amber-400">6.0 mm</strong>
+                    <div className="bg-white p-2.5 rounded border border-gray-200 text-slate-700">
+                      &gt; 1kg / L: <strong className="text-[#003366] font-semibold">6.0 mm</strong>
                     </div>
                   </div>
                 </div>
@@ -1157,53 +1210,53 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
 
             {/* TAB CONTENT: Rule 26 Exemption Gate */}
             {inspectionTab === 'exemption' && (
-              <div className="p-5 space-y-4">
+              <div className="p-5 space-y-4 bg-white">
                 <div
                   className={`p-4 rounded-lg border ${
                     exemption.isExempt
-                      ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-200'
-                      : 'bg-slate-950 border-slate-800 text-slate-200'
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                      : 'bg-slate-50 border-gray-200 text-slate-800'
                   }`}
                 >
-                  <div className="flex items-center gap-2 font-bold text-sm">
+                  <div className="flex items-center gap-2 font-semibold text-sm">
                     {exemption.isExempt ? (
                       <>
-                        <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                        <CheckCircle2 className="w-5 h-5 text-emerald-700" />
                         Statutorily Exempt from Chapter II (PCR 2011)
                       </>
                     ) : (
                       <>
-                        <Layers className="w-5 h-5 text-amber-500" />
+                        <Layers className="w-5 h-5 text-[#003366]" />
                         Standard Non-Exempt Pre-Packaged Commodity
                       </>
                     )}
                   </div>
-                  <p className="text-xs mt-1.5 leading-relaxed text-slate-400">
+                  <p className="text-xs mt-1.5 leading-relaxed text-slate-600">
                     {exemption.reason}
                   </p>
                   {exemption.clause && (
-                    <div className="mt-2 text-xs font-mono font-bold text-amber-400">
+                    <div className="mt-2 text-xs font-medium text-[#003366]">
                       Statutory Clause: {exemption.clause}
                     </div>
                   )}
                 </div>
 
-                <div className="space-y-2 text-xs text-slate-400">
-                  <div className="font-bold text-slate-300 uppercase tracking-wider font-mono text-[10px]">
+                <div className="space-y-2 text-xs text-slate-600">
+                  <div className="font-semibold text-slate-800 text-xs">
                     Statutory Exemption Criteria (Rule 26):
                   </div>
-                  <ul className="list-disc pl-5 space-y-1 text-[11px] font-mono text-slate-400">
-                    <li><strong className="text-slate-200">Rule 26(a):</strong> Packages containing net quantity of 10g or 10ml or less.</li>
-                    <li><strong className="text-slate-200">Rule 26(b):</strong> Packages containing agricultural produce exceeding 50 kilograms.</li>
-                    <li><strong className="text-slate-200">Rule 26(c):</strong> Fast food items packed across the counter in hotels/restaurants.</li>
-                    <li><strong className="text-slate-200">Rule 26(d):</strong> Scheduled formulations under Drug Price Control Order (DPCO).</li>
-                    <li><strong className="text-slate-200">Rule 26(e):</strong> Packages meant solely for industrial or institutional consumers.</li>
+                  <ul className="list-disc pl-5 space-y-1.5 text-xs text-slate-700">
+                    <li><strong className="text-slate-900">Rule 26(a):</strong> Packages containing net quantity of 10g or 10ml or less.</li>
+                    <li><strong className="text-slate-900">Rule 26(b):</strong> Packages containing agricultural produce exceeding 50 kilograms.</li>
+                    <li><strong className="text-slate-900">Rule 26(c):</strong> Fast food items packed across the counter in hotels/restaurants.</li>
+                    <li><strong className="text-slate-900">Rule 26(d):</strong> Scheduled formulations under Drug Price Control Order (DPCO).</li>
+                    <li><strong className="text-slate-900">Rule 26(e):</strong> Packages meant solely for industrial or institutional consumers.</li>
                   </ul>
                 </div>
               </div>
             )}
 
-            {/* TAB CONTENT: PaddleOCR PP-OCRv4 Telemetry */}
+            {/* TAB CONTENT: Gemini Multimodal Vision Extraction Telemetry */}
             {inspectionTab === 'ocr' && (() => {
               const paddleOcr =
                 declarations.paddleOcrResult ||
@@ -1215,22 +1268,22 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
                 );
 
               return (
-                <div className="p-5 space-y-4">
+                <div className="p-5 space-y-4 bg-white">
                   {/* Pipeline Architecture Banner */}
-                  <div className="p-4 bg-slate-950 border border-slate-800 rounded-lg space-y-2.5">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+                  <div className="p-4 bg-slate-50 border border-gray-200 rounded-lg space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-200 pb-2.5">
                       <div className="flex items-center gap-2">
-                        <span className="p-1.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                        <span className="p-1.5 rounded bg-[#003366]/10 text-[#003366] border border-[#003366]/20">
                           <Binary className="w-4 h-4" />
                         </span>
                         <div>
-                          <div className="text-xs font-bold text-white font-mono flex items-center gap-2">
+                          <div className="text-xs font-semibold text-slate-900 flex items-center gap-2">
                             {paddleOcr.engine}
-                            <span className="px-1.5 py-0.2 bg-emerald-500/10 text-emerald-400 text-[10px] rounded border border-emerald-500/20">
+                            <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-800 text-[11px] rounded border border-emerald-200 font-medium">
                               Active
                             </span>
                           </div>
-                          <div className="text-[10px] text-slate-400 font-mono">
+                          <div className="text-xs text-slate-500">
                             Angle: {paddleOcr.directionAngle}° • Ingestion: Real Camera / Optical Sensor
                           </div>
                         </div>
@@ -1239,28 +1292,28 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => setIsRealCameraOpen(true)}
-                          className="px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold font-mono transition flex items-center gap-1 cursor-pointer"
+                          className="px-3 py-1.5 rounded bg-white hover:bg-slate-50 text-slate-700 border border-gray-300 text-xs font-medium transition flex items-center gap-1 cursor-pointer shadow-xs"
                         >
-                          <Camera className="w-3 h-3" /> Rescan Camera
+                          <Camera className="w-3.5 h-3.5 text-slate-600" /> Rescan Camera
                         </button>
-                        <span className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-amber-400">
+                        <span className="px-2.5 py-1 rounded bg-white border border-gray-300 text-xs text-slate-600 font-medium">
                           Latency: {paddleOcr.processingTimeMs}ms
                         </span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] font-mono pt-1 text-slate-400">
-                      <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
-                        <span className="text-slate-500 block">DETECTION MODEL:</span>
-                        <strong className="text-slate-200">{paddleOcr.detectionModel}</strong>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-600">
+                      <div className="bg-white p-2.5 rounded border border-gray-200">
+                        <span className="text-slate-500 text-[11px] block">Detection Model:</span>
+                        <strong className="text-slate-900 font-medium">{paddleOcr.detectionModel}</strong>
                       </div>
-                      <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
-                        <span className="text-slate-500 block">RECOGNITION MODEL:</span>
-                        <strong className="text-slate-200">{paddleOcr.recognitionModel}</strong>
+                      <div className="bg-white p-2.5 rounded border border-gray-200">
+                        <span className="text-slate-500 text-[11px] block">Recognition Model:</span>
+                        <strong className="text-slate-900 font-medium">{paddleOcr.recognitionModel}</strong>
                       </div>
-                      <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
-                        <span className="text-slate-500 block">ORIENTATION CLASSIFIER:</span>
-                        <strong className="text-slate-200">{paddleOcr.directionClassifier}</strong>
+                      <div className="bg-white p-2.5 rounded border border-gray-200">
+                        <span className="text-slate-500 text-[11px] block">Orientation Classifier:</span>
+                        <strong className="text-slate-900 font-medium">{paddleOcr.directionClassifier}</strong>
                       </div>
                     </div>
                   </div>
@@ -1268,17 +1321,17 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
                   {/* Detected Text Line Polygons Matrix */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-mono text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
+                      <span className="text-slate-800 font-semibold text-xs">
                         PaddleOCR Detected Text Regions &amp; Polygons ({paddleOcr.textLines.length} Zones):
                       </span>
-                      <span className="text-[10px] text-slate-500 font-mono">
+                      <span className="text-xs text-slate-500">
                         Click row to project onto PDP Canvas
                       </span>
                     </div>
 
-                    <div className="overflow-x-auto border border-slate-800 rounded-lg bg-slate-950">
+                    <div className="overflow-x-auto border border-gray-200 rounded-lg bg-white">
                       <table className="w-full text-xs text-left">
-                        <thead className="bg-slate-900/80 text-slate-400 font-mono text-[10px] uppercase tracking-wider border-b border-slate-800">
+                        <thead className="bg-slate-50 text-slate-700 font-mono text-[10px] uppercase tracking-wider border-b border-gray-200">
                           <tr>
                             <th className="py-2 px-3">Field Zone</th>
                             <th className="py-2 px-3">Recognized Text</th>
@@ -1288,7 +1341,7 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
                             <th className="py-2 px-3 text-right">Action</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800/80 font-mono text-[11px]">
+                        <tbody className="divide-y divide-gray-200 font-mono text-[11px]">
                           {paddleOcr.textLines.map((line, idx) => {
                             const isSelected = selectedBoxLabel === line.label;
                             return (
@@ -1296,31 +1349,31 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
                                 key={idx}
                                 onClick={() => setSelectedBoxLabel(isSelected ? null : line.label || null)}
                                 className={`cursor-pointer transition ${
-                                  isSelected ? 'bg-amber-500/15 text-amber-200' : 'hover:bg-slate-900/60 text-slate-300'
+                                  isSelected ? 'bg-amber-50 text-amber-950 font-semibold' : 'hover:bg-slate-50 text-slate-700'
                                 }`}
                               >
                                 <td className="py-2.5 px-3">
-                                  <span className="px-1.5 py-0.5 rounded bg-slate-800 text-amber-400 text-[10px] border border-slate-700">
+                                  <span className="px-1.5 py-0.5 rounded bg-slate-100 text-[#003366] text-[10px] border border-gray-300 font-bold">
                                     {line.label || `TEXT_ZONE_${idx + 1}`}
                                   </span>
                                 </td>
-                                <td className="py-2.5 px-3 font-sans font-medium text-slate-200 max-w-[220px] truncate">
+                                <td className="py-2.5 px-3 font-sans font-medium text-slate-900 max-w-[220px] truncate">
                                   {line.text}
                                 </td>
                                 <td className="py-2.5 px-3">
                                   <div className="flex items-center gap-1.5">
-                                    <span className="text-emerald-400 font-bold">
+                                    <span className="text-emerald-700 font-bold">
                                       {(line.confidence * 100).toFixed(1)}%
                                     </span>
-                                    <div className="w-12 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                    <div className="w-12 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                                       <div
-                                        className="h-full bg-emerald-500 rounded-full"
+                                        className="h-full bg-emerald-600 rounded-full"
                                         style={{ width: `${Math.min(100, line.confidence * 100)}%` }}
                                       ></div>
                                     </div>
                                   </div>
                                 </td>
-                                <td className="py-2.5 px-3 text-amber-400 font-bold">
+                                <td className="py-2.5 px-3 text-[#003366] font-bold">
                                   {line.measuredHeightMm ? `${line.measuredHeightMm.toFixed(1)} mm` : '--'}
                                 </td>
                                 <td className="py-2.5 px-3 text-slate-500 text-[10px]">
@@ -1334,8 +1387,8 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
                                     }}
                                     className={`px-2 py-0.5 rounded text-[10px] font-mono border transition cursor-pointer ${
                                       isSelected
-                                        ? 'bg-amber-500 text-slate-950 font-bold border-amber-400'
-                                        : 'bg-slate-900 text-slate-300 border-slate-700 hover:text-white'
+                                        ? 'bg-[#003366] text-white font-bold border-[#003366]'
+                                        : 'bg-white text-slate-700 border-gray-300 hover:bg-slate-50'
                                     }`}
                                   >
                                     {isSelected ? 'Highlighted' : 'Inspect Box'}
@@ -1352,7 +1405,7 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
                   {/* Raw Character Stream */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-400 font-mono uppercase tracking-wider text-[10px]">
+                      <span className="text-slate-700 font-mono uppercase tracking-wider text-[10px] font-bold">
                         Continuous Optical Character Stream:
                       </span>
                       <button
@@ -1363,13 +1416,13 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
                             setTimeout(() => setCopiedOcr(false), 2000);
                           }
                         }}
-                        className="text-[10px] font-mono text-slate-400 hover:text-amber-400 transition flex items-center gap-1 cursor-pointer"
+                        className="text-[10px] font-mono text-slate-600 hover:text-[#003366] transition flex items-center gap-1 cursor-pointer font-bold"
                       >
-                        {copiedOcr ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                        {copiedOcr ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                         {copiedOcr ? 'Copied' : 'Copy Stream'}
                       </button>
                     </div>
-                    <div className="p-3.5 bg-slate-950 text-amber-400 font-mono text-xs rounded-lg border border-slate-800 overflow-x-auto leading-relaxed max-h-44 overflow-y-auto shadow-inner">
+                    <div className="p-3.5 bg-slate-50 text-slate-900 font-mono text-xs rounded-lg border border-gray-200 overflow-x-auto leading-relaxed max-h-44 overflow-y-auto shadow-inner">
                       {declarations.rawOcrText || 'No optical text stream extracted.'}
                     </div>
                   </div>

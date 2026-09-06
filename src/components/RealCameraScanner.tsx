@@ -287,20 +287,20 @@ export const RealCameraScanner: React.FC<RealCameraScannerProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-lg max-w-4xl w-full shadow-2xl overflow-hidden flex flex-col my-auto text-slate-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+      <div className="bg-white border border-gray-300 rounded-lg max-w-4xl w-full shadow-2xl overflow-hidden flex flex-col my-auto text-slate-800">
         {/* Header HUD */}
-        <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-4 bg-[#003366] text-white border-b border-[#002244] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-amber-500/10 border border-amber-500/30 rounded text-amber-400">
+            <div className="p-2 bg-white/10 border border-white/20 rounded text-amber-300">
               <Camera className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-[10px] font-mono text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <div className="text-[10px] font-mono text-amber-300 uppercase tracking-wider flex items-center gap-1.5 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 PaddleOCR Optical Scanner • Real Hardware Camera
               </div>
-              <h3 className="text-sm font-semibold text-white">
+              <h3 className="text-sm font-bold text-white">
                 Pre-Packaged Commodity Label Ingestion
               </h3>
             </div>
@@ -311,7 +311,7 @@ export const RealCameraScanner: React.FC<RealCameraScannerProps> = ({
               stopTracks();
               onClose();
             }}
-            className="p-1.5 text-slate-400 hover:text-white rounded hover:bg-slate-800 transition"
+            className="p-1.5 text-white/80 hover:text-white rounded hover:bg-white/10 transition cursor-pointer"
             title="Close Camera"
           >
             <X className="w-5 h-5" />
@@ -322,19 +322,19 @@ export const RealCameraScanner: React.FC<RealCameraScannerProps> = ({
         <div className="relative bg-black min-h-[380px] sm:min-h-[460px] flex items-center justify-center overflow-hidden">
           {/* Permission or Hardware Error */}
           {hasPermission === false && (
-            <div className="p-8 max-w-md text-center space-y-4 z-20">
-              <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 mx-auto flex items-center justify-center">
+            <div className="p-8 max-w-md text-center space-y-4 z-20 bg-white/95 backdrop-blur-xs rounded-xl border border-gray-200 shadow-2xl m-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 border border-red-300 text-red-600 mx-auto flex items-center justify-center">
                 <AlertCircle className="w-6 h-6" />
               </div>
-              <h4 className="text-sm font-semibold text-white">Camera Access Required</h4>
-              <p className="text-xs text-slate-400 leading-relaxed font-mono">
+              <h4 className="text-sm font-bold text-slate-900">Camera Access Required</h4>
+              <p className="text-xs text-slate-600 leading-relaxed font-mono">
                 {errorMessage || 'Unable to access hardware camera.'}
               </p>
               <div className="pt-2 flex flex-col gap-2 justify-center">
                 <div className="flex flex-col sm:flex-row gap-2 justify-center">
                   <button
                     onClick={startCamera}
-                    className="px-4 py-2.5 min-h-[44px] bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-xs uppercase tracking-wider transition font-mono flex items-center justify-center gap-2 cursor-pointer"
+                    className="px-4 py-2.5 min-h-[44px] bg-[#003366] hover:bg-[#002244] text-white font-bold rounded text-xs uppercase tracking-wider transition font-mono flex items-center justify-center gap-2 cursor-pointer shadow-xs"
                   >
                     <RefreshCw className="w-3.5 h-3.5" /> Retry Camera Permission
                   </button>
@@ -345,7 +345,7 @@ export const RealCameraScanner: React.FC<RealCameraScannerProps> = ({
                         onClose();
                         onUseNativeCamera();
                       }}
-                      className="px-4 py-2.5 min-h-[44px] bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/40 font-bold rounded text-xs transition font-mono flex items-center justify-center gap-2 cursor-pointer"
+                      className="px-4 py-2.5 min-h-[44px] bg-[#FF9933] hover:bg-[#E68A00] text-slate-950 font-bold rounded text-xs transition font-mono flex items-center justify-center gap-2 cursor-pointer shadow-xs"
                     >
                       <Camera className="w-3.5 h-3.5" /> Use Phone Camera App
                     </button>
@@ -353,7 +353,7 @@ export const RealCameraScanner: React.FC<RealCameraScannerProps> = ({
                 </div>
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 border border-slate-800 text-slate-400 hover:bg-slate-800 rounded text-xs font-mono"
+                  className="px-4 py-2 border border-gray-300 text-slate-700 hover:bg-slate-100 rounded text-xs font-mono cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -469,14 +469,14 @@ export const RealCameraScanner: React.FC<RealCameraScannerProps> = ({
         </div>
 
         {/* Live Controls Toolbar */}
-        <div className="p-4 bg-slate-950 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="p-4 bg-slate-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-800">
           {/* Left Controls: Device Selector & Torch */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
             {videoDevices.length > 1 && !capturedImage && (
               <select
                 value={selectedDeviceId}
                 onChange={(e) => setSelectedDeviceId(e.target.value)}
-                className="px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded text-slate-300 text-xs font-mono focus:outline-none focus:border-amber-500 max-w-[160px] truncate"
+                className="px-2.5 py-1.5 bg-white border border-gray-300 rounded text-slate-800 text-xs font-mono focus:outline-none focus:border-[#003366] max-w-[160px] truncate shadow-xs"
               >
                 {videoDevices.map((d, i) => (
                   <option key={d.deviceId || i} value={d.deviceId}>
@@ -489,10 +489,10 @@ export const RealCameraScanner: React.FC<RealCameraScannerProps> = ({
             {!capturedImage && (
               <button
                 onClick={flipCamera}
-                className="px-2.5 py-1.5 rounded bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-mono transition flex items-center gap-1.5"
+                className="px-2.5 py-1.5 rounded bg-white border border-gray-300 hover:bg-slate-100 text-slate-700 text-xs font-mono transition flex items-center gap-1.5 shadow-xs cursor-pointer"
                 title="Switch between front and back cameras"
               >
-                <SwitchCamera className="w-3.5 h-3.5 text-amber-400" />
+                <SwitchCamera className="w-3.5 h-3.5 text-[#003366]" />
                 <span className="hidden sm:inline">Flip</span>
               </button>
             )}
@@ -500,27 +500,27 @@ export const RealCameraScanner: React.FC<RealCameraScannerProps> = ({
             {hasTorch && !capturedImage && (
               <button
                 onClick={toggleTorch}
-                className={`px-2.5 py-1.5 rounded border text-xs font-mono transition flex items-center gap-1.5 ${
+                className={`px-2.5 py-1.5 rounded border text-xs font-mono transition flex items-center gap-1.5 shadow-xs cursor-pointer ${
                   torchOn
-                    ? 'bg-amber-500 text-slate-950 font-bold border-amber-400 shadow-sm'
-                    : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
+                    ? 'bg-[#FF9933] text-slate-950 font-bold border-[#FF9933]'
+                    : 'bg-white border-gray-300 text-slate-700 hover:bg-slate-100'
                 }`}
                 title="Toggle camera flash/torch"
               >
-                {torchOn ? <Zap className="w-3.5 h-3.5" /> : <ZapOff className="w-3.5 h-3.5 text-slate-400" />}
+                {torchOn ? <Zap className="w-3.5 h-3.5" /> : <ZapOff className="w-3.5 h-3.5 text-slate-500" />}
                 <span className="hidden sm:inline">Torch</span>
               </button>
             )}
 
             {/* Calibration Dimensions */}
-            <div className="flex items-center gap-1 text-[11px] font-mono text-slate-400 ml-auto sm:ml-2">
-              <Sliders className="w-3.5 h-3.5 text-amber-400" />
+            <div className="flex items-center gap-1 text-[11px] font-mono text-slate-600 ml-auto sm:ml-2">
+              <Sliders className="w-3.5 h-3.5 text-[#003366]" />
               <span>Cal:</span>
               <input
                 type="number"
                 value={packageHeightMm}
                 onChange={(e) => setPackageHeightMm(Number(e.target.value) || 180)}
-                className="w-12 px-1 py-0.5 bg-slate-900 border border-slate-800 rounded text-center text-slate-200 text-xs font-mono"
+                className="w-12 px-1 py-0.5 bg-white border border-gray-300 rounded text-center text-slate-800 text-xs font-mono shadow-xs"
                 title="Package Height in Millimeters"
               />
               <span>×</span>
@@ -528,7 +528,7 @@ export const RealCameraScanner: React.FC<RealCameraScannerProps> = ({
                 type="number"
                 value={packageWidthMm}
                 onChange={(e) => setPackageWidthMm(Number(e.target.value) || 95)}
-                className="w-12 px-1 py-0.5 bg-slate-900 border border-slate-800 rounded text-center text-slate-200 text-xs font-mono"
+                className="w-12 px-1 py-0.5 bg-white border border-gray-300 rounded text-center text-slate-800 text-xs font-mono shadow-xs"
                 title="Package Width in Millimeters"
               />
               <span>mm</span>
@@ -541,7 +541,7 @@ export const RealCameraScanner: React.FC<RealCameraScannerProps> = ({
               <>
                 <button
                   onClick={handlePauseFrame}
-                  className="px-3 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded text-xs font-mono transition flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-2 bg-white hover:bg-slate-100 border border-gray-300 text-slate-700 rounded text-xs font-mono transition flex items-center gap-1.5 cursor-pointer shadow-xs"
                   title="Pause camera frame for review"
                 >
                   <span>Freeze</span>
@@ -549,7 +549,7 @@ export const RealCameraScanner: React.FC<RealCameraScannerProps> = ({
 
                 <button
                   onClick={() => handleTriggerSnap(3)}
-                  className="px-3 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded text-xs font-mono transition flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-2 bg-white hover:bg-slate-100 border border-gray-300 text-slate-700 rounded text-xs font-mono transition flex items-center gap-1.5 cursor-pointer shadow-xs"
                   title="Capture after 3-second delay"
                 >
                   <span>Timer 3s</span>
@@ -557,7 +557,7 @@ export const RealCameraScanner: React.FC<RealCameraScannerProps> = ({
 
                 <button
                   onClick={() => handleTriggerSnap(0)}
-                  className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded uppercase tracking-wider text-xs transition flex items-center gap-2 shadow-lg shadow-amber-500/25 cursor-pointer active:scale-95"
+                  className="px-5 py-2.5 bg-[#FF9933] hover:bg-[#E68A00] text-slate-950 font-bold rounded uppercase tracking-wider text-xs transition flex items-center gap-2 shadow-xs cursor-pointer active:scale-95"
                 >
                   <Scan className="w-4 h-4" />
                   <span>Scan with PaddleOCR</span>
@@ -567,14 +567,14 @@ export const RealCameraScanner: React.FC<RealCameraScannerProps> = ({
               <>
                 <button
                   onClick={handleRetake}
-                  className="px-4 py-2 border border-slate-700 text-slate-300 hover:bg-slate-800 rounded text-xs font-mono transition cursor-pointer"
+                  className="px-4 py-2 border border-gray-300 text-slate-700 hover:bg-slate-100 rounded text-xs font-mono transition cursor-pointer shadow-xs"
                 >
                   Retake Photo
                 </button>
 
                 <button
                   onClick={handleConfirmAndScan}
-                  className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded uppercase tracking-wider text-xs transition flex items-center gap-2 shadow-lg shadow-amber-500/25 cursor-pointer active:scale-95"
+                  className="px-5 py-2.5 bg-[#FF9933] hover:bg-[#E68A00] text-slate-950 font-bold rounded uppercase tracking-wider text-xs transition flex items-center gap-2 shadow-xs cursor-pointer active:scale-95"
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>Inspect This Frame</span>

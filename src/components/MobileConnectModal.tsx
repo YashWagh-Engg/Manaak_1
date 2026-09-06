@@ -59,20 +59,20 @@ export const MobileConnectModal: React.FC<MobileConnectModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-lg max-w-xl w-full shadow-2xl overflow-hidden text-slate-200 my-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+      <div className="bg-white border border-gray-300 rounded-lg max-w-xl w-full shadow-2xl overflow-hidden text-slate-800 my-auto">
         {/* Header HUD */}
-        <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-4 bg-[#003366] text-white border-b border-[#002244] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-amber-500/10 border border-amber-500/30 rounded text-amber-400">
+            <div className="p-2 bg-white/10 border border-white/20 rounded text-amber-300">
               <Smartphone className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-[10px] font-mono text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <div className="text-[10px] font-mono text-amber-300 uppercase tracking-wider font-semibold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 Mobile Field Officer Setup
               </div>
-              <h3 className="text-sm font-semibold text-white">
+              <h3 className="text-sm font-bold text-white">
                 How to Use on Mobile Phone (Android / iPhone)
               </h3>
             </div>
@@ -80,7 +80,7 @@ export const MobileConnectModal: React.FC<MobileConnectModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded hover:bg-slate-800 transition cursor-pointer"
+            className="p-1.5 text-white/80 hover:text-white rounded hover:bg-white/10 transition cursor-pointer"
             title="Close modal"
           >
             <X className="w-5 h-5" />
@@ -90,8 +90,8 @@ export const MobileConnectModal: React.FC<MobileConnectModalProps> = ({
         {/* Modal Body */}
         <div className="p-5 sm:p-6 space-y-6">
           {/* Quick QR Code Section */}
-          <div className="flex flex-col sm:flex-row items-center gap-5 p-4 bg-slate-950 border border-slate-800 rounded-lg">
-            <div className="p-2.5 bg-white rounded-md shadow-lg shrink-0 flex items-center justify-center">
+          <div className="flex flex-col sm:flex-row items-center gap-5 p-4 bg-slate-50 border border-gray-200 rounded-lg">
+            <div className="p-2.5 bg-white rounded-md shadow-xs border border-gray-200 shrink-0 flex items-center justify-center">
               {qrDataUrl ? (
                 <img
                   src={qrDataUrl}
@@ -106,11 +106,11 @@ export const MobileConnectModal: React.FC<MobileConnectModalProps> = ({
             </div>
 
             <div className="space-y-2.5 text-center sm:text-left flex-1">
-              <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-bold text-amber-400 uppercase tracking-wider font-mono">
+              <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-bold text-[#003366] uppercase tracking-wider font-mono">
                 <QrCode className="w-3.5 h-3.5" />
                 Scan to Open on Phone
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <p className="text-xs text-slate-600 leading-relaxed">
                 Point your smartphone camera (iPhone Camera or Google Lens / Android Camera) at this QR code to launch the web scanner instantly in your phone's browser.
               </p>
 
@@ -120,14 +120,14 @@ export const MobileConnectModal: React.FC<MobileConnectModalProps> = ({
                   type="text"
                   readOnly
                   value={mobileUrl}
-                  className="px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded text-[11px] font-mono text-slate-300 flex-1 truncate focus:outline-none"
+                  className="px-2.5 py-1.5 bg-white border border-gray-300 rounded text-[11px] font-mono text-slate-700 flex-1 truncate focus:outline-none"
                 />
                 <button
                   onClick={handleCopyUrl}
-                  className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded text-xs font-mono transition flex items-center gap-1 cursor-pointer shrink-0"
+                  className="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-gray-300 rounded text-xs font-mono transition flex items-center gap-1 cursor-pointer shrink-0 shadow-xs"
                   title="Copy application link"
                 >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copied ? 'Copied' : 'Copy'}</span>
                 </button>
               </div>
@@ -136,77 +136,77 @@ export const MobileConnectModal: React.FC<MobileConnectModalProps> = ({
 
           {/* 3 Step Usage Instructions */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center gap-1.5">
-              <Camera className="w-3.5 h-3.5 text-amber-400" />
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono flex items-center gap-1.5">
+              <Camera className="w-3.5 h-3.5 text-[#003366]" />
               Two Ways to Scan on Mobile:
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Option A: Live Hardware Viewfinder */}
-              <div className="p-3.5 bg-slate-950/80 border border-slate-800 rounded-lg space-y-1.5">
+              <div className="p-3.5 bg-slate-50 border border-gray-200 rounded-lg space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[10px] font-black">
+                  <span className="text-xs font-bold text-slate-900 font-mono flex items-center gap-1.5">
+                    <span className="w-4 h-4 rounded-full bg-[#003366] text-white flex items-center justify-center text-[10px] font-bold">
                       1
                     </span>
                     Live Camera Mode
                   </span>
-                  <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[9px] rounded font-mono border border-emerald-500/20">
+                  <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[9px] rounded font-mono border border-emerald-300">
                     Real-Time Reticle
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Tap <strong className="text-amber-400">"Open Real Camera"</strong>. The browser will open the live viewfinder using your phone's rear camera with Rule 8 framing guides and flashlight support.
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Tap <strong className="text-[#003366]">"Open Real Camera"</strong>. The browser will open the live viewfinder using your phone's rear camera with Rule 8 framing guides and flashlight support.
                 </p>
               </div>
 
               {/* Option B: Native Mobile Camera Snap */}
-              <div className="p-3.5 bg-slate-950/80 border border-slate-800 rounded-lg space-y-1.5">
+              <div className="p-3.5 bg-slate-50 border border-gray-200 rounded-lg space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[10px] font-black">
+                  <span className="text-xs font-bold text-slate-900 font-mono flex items-center gap-1.5">
+                    <span className="w-4 h-4 rounded-full bg-[#003366] text-white flex items-center justify-center text-[10px] font-bold">
                       2
                     </span>
                     Mobile Snap (Native)
                   </span>
-                  <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-400 text-[9px] rounded font-mono border border-blue-500/20">
+                  <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-[9px] rounded font-mono border border-blue-300">
                     Ultra High-Res
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Tap <strong className="text-amber-400">"Mobile Snap"</strong>. This directly triggers your smartphone's built-in camera app with autofocus and optical HDR, then runs PaddleOCR automatically.
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Tap <strong className="text-[#003366]">"Mobile Snap"</strong>. This directly triggers your smartphone's built-in camera app with autofocus and optical HDR, then runs PaddleOCR automatically.
                 </p>
               </div>
             </div>
           </div>
 
           {/* Browser Camera Permissions Guidance */}
-          <div className="p-3.5 bg-slate-950/60 border border-slate-800/80 rounded-lg space-y-2 text-xs">
-            <div className="flex items-center gap-1.5 text-slate-300 font-semibold font-mono">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <div className="p-3.5 bg-slate-50 border border-gray-200 rounded-lg space-y-2 text-xs">
+            <div className="flex items-center gap-1.5 text-slate-800 font-semibold font-mono">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
               Camera Permissions on Mobile:
             </div>
-            <ul className="list-disc list-inside space-y-1 text-slate-400 text-[11px] leading-relaxed pl-1">
+            <ul className="list-disc list-inside space-y-1 text-slate-600 text-[11px] leading-relaxed pl-1">
               <li>
-                <strong className="text-slate-300">Android (Chrome):</strong> When asked <em>"Allow ais-*.run.app to access your camera?"</em>, tap <strong className="text-emerald-400">Allow</strong>.
+                <strong className="text-slate-800">Android (Chrome):</strong> When asked <em>"Allow ais-*.run.app to access your camera?"</em>, tap <strong className="text-emerald-700">Allow</strong>.
               </li>
               <li>
-                <strong className="text-slate-300">iOS (iPhone Safari):</strong> When prompted <em>"Would Like to Access the Camera"</em>, tap <strong className="text-emerald-400">Allow</strong>.
+                <strong className="text-slate-800">iOS (iPhone Safari):</strong> When prompted <em>"Would Like to Access the Camera"</em>, tap <strong className="text-emerald-700">Allow</strong>.
               </li>
               <li>
-                <strong className="text-slate-300">If using within an embedded iframe:</strong> Browser security may restrict webcam streams. Simply tap <strong className="text-amber-400">"Mobile Snap"</strong> or open the app in a new browser tab.
+                <strong className="text-slate-800">If using within an embedded iframe:</strong> Browser security may restrict webcam streams. Simply tap <strong className="text-[#003366]">"Mobile Snap"</strong> or open the app in a new browser tab.
               </li>
             </ul>
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 bg-slate-950 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="p-4 bg-slate-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
           <a
             href={mobileUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs font-mono text-slate-400 hover:text-amber-400 transition flex items-center gap-1.5"
+            className="text-xs font-mono text-slate-600 hover:text-[#003366] transition flex items-center gap-1.5"
           >
             <ExternalLink className="w-3.5 h-3.5" />
             <span>Open in Fullscreen Browser Tab</span>
@@ -219,16 +219,16 @@ export const MobileConnectModal: React.FC<MobileConnectModalProps> = ({
                   onClose();
                   onOpenNativeCamera();
                 }}
-                className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded text-xs font-mono transition flex items-center gap-1.5 cursor-pointer"
+                className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-gray-300 rounded text-xs font-mono transition flex items-center gap-1.5 cursor-pointer shadow-xs"
               >
-                <Camera className="w-3.5 h-3.5 text-amber-400" />
+                <Camera className="w-3.5 h-3.5 text-[#003366]" />
                 <span>Test Mobile Snap</span>
               </button>
             )}
 
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-xs uppercase tracking-wider font-mono transition cursor-pointer"
+              className="px-4 py-2 bg-[#003366] hover:bg-[#002244] text-white font-bold rounded text-xs uppercase tracking-wider font-mono transition cursor-pointer shadow-xs"
             >
               Done
             </button>

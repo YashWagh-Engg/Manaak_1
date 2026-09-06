@@ -101,34 +101,32 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="bg-slate-900 text-slate-200 rounded-lg p-5 border border-slate-800 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-        <div className="space-y-1">
+      <div className="bg-white text-slate-800 rounded-lg p-6 border border-gray-200 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30 uppercase tracking-widest">
-              Module 3: Dynamic Rule Engine
-            </span>
-            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">
-              Packaged Commodities Rules, 2011
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#003366] bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200">
+              <Sliders className="w-3 h-3 text-[#003366]" />
+              PCR 2011 Engine Rules
             </span>
           </div>
-          <h2 className="text-xl font-semibold tracking-tight text-white flex items-center gap-2">
+          <h2 className="text-xl font-bold tracking-tight text-slate-900">
             Statutory Rule &amp; Compounding Configurator
           </h2>
-          <p className="text-xs text-slate-400 max-w-2xl">
+          <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
             Live read/write interface for statutory compliance rules. Modifications are instantly hot-reloaded into the backend inspection engine and affect all active evaluations.
           </p>
         </div>
 
         {/* RBAC State Pill */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           {isAdmin ? (
-            <div className="px-3.5 py-2 rounded bg-emerald-950/60 border border-emerald-700/60 text-emerald-400 text-xs font-mono font-semibold flex items-center gap-1.5 shadow-sm">
-              <Shield className="w-4 h-4 text-emerald-400" />
+            <div className="px-3 py-1.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium flex items-center gap-1.5 shadow-xs">
+              <Shield className="w-4 h-4 text-emerald-700" />
               <span>Chief Admin (Full Edit Access)</span>
             </div>
           ) : (
-            <div className="px-3.5 py-2 rounded bg-amber-950/60 border border-amber-700/60 text-amber-400 text-xs font-mono font-semibold flex items-center gap-1.5 shadow-sm">
-              <Lock className="w-4 h-4 text-amber-400" />
+            <div className="px-3 py-1.5 rounded-md bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium flex items-center gap-1.5 shadow-xs">
+              <Lock className="w-4 h-4 text-amber-700" />
               <span>Read-Only Mode ({currentRole})</span>
             </div>
           )}
@@ -137,12 +135,12 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
 
       {/* RBAC Notice if not admin */}
       {!isAdmin && (
-        <div className="p-4 bg-amber-950/20 border border-amber-500/30 rounded-lg text-amber-300 text-xs flex items-start gap-3 font-mono">
-          <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-xs flex items-start gap-3 shadow-xs">
+          <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <div className="font-bold uppercase tracking-wider text-[11px]">Role-Based Access Control Notice</div>
-            <p className="leading-relaxed text-slate-400">
-              You are currently viewing statutory rules as <strong className="text-slate-200">{currentRole}</strong>. In accordance with Legal Metrology administrative protocols, only the <strong className="text-amber-400">Chief Metrology Admin</strong> has authority to alter statutory rule thresholds or compounding penalty slabs. Switch your role in the top-right corner to test admin editing and hot-reloading!
+            <div className="font-semibold text-xs text-amber-900">Role-Based Access Control Notice</div>
+            <p className="leading-relaxed text-slate-700">
+              You are currently viewing statutory rules as <strong className="text-slate-900">{currentRole}</strong>. In accordance with Legal Metrology administrative protocols, only the <strong className="text-[#003366]">Chief Metrology Admin</strong> has authority to alter statutory rule thresholds or compounding penalty slabs. Switch your role in the top-right corner to test admin editing and hot-reloading!
             </p>
           </div>
         </div>
@@ -152,15 +150,15 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* LEFT COLUMN: Rule Directory */}
         <div className="lg:col-span-4 space-y-3">
-          <div className="bg-slate-900 rounded-lg border border-slate-800 shadow-sm p-4 space-y-3">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-400 pb-2 border-b border-slate-800 uppercase tracking-widest font-mono text-[10px]">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-xs p-4 space-y-3">
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-800 pb-2.5 border-b border-gray-100">
               <span className="flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5 text-amber-500" />
+                <BookOpen className="w-4 h-4 text-[#003366]" />
                 Active Rule Modules ({rules.length})
               </span>
               <button
                 onClick={() => onReloadRules()}
-                className="text-amber-400 hover:text-amber-300 transition"
+                className="text-[#003366] hover:text-[#002244] transition cursor-pointer p-1 rounded hover:bg-slate-100"
                 title="Reload from server"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
@@ -174,24 +172,24 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                   <button
                     key={rule.ruleCode}
                     onClick={() => handleSelectRule(rule.ruleCode)}
-                    className={`w-full text-left p-3 rounded border transition text-xs flex flex-col gap-1 ${
+                    className={`w-full text-left p-3 rounded-md border transition text-xs flex flex-col gap-1 cursor-pointer ${
                       isSelected
-                        ? 'border-amber-500 bg-amber-500/10 shadow-xs'
-                        : 'border-slate-800 bg-slate-950 hover:bg-slate-800/60'
+                        ? 'border-[#003366] bg-[#003366]/5 shadow-xs'
+                        : 'border-gray-200 bg-white hover:bg-slate-50'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-white">{rule.title}</span>
+                      <span className="font-semibold text-slate-900">{rule.title}</span>
                       <span
-                        className={`text-[9px] font-mono px-2 py-0.5 rounded font-bold ${
-                          rule.enabled ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-500'
+                        className={`text-[10px] px-1.5 py-0.2 rounded font-medium ${
+                          rule.enabled ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'
                         }`}
                       >
-                        {rule.enabled ? 'ACTIVE' : 'DISABLED'}
+                        {rule.enabled ? 'Active' : 'Disabled'}
                       </span>
                     </div>
-                    <div className="text-[10px] font-mono text-amber-400">{rule.ruleCode}</div>
-                    <div className="text-[11px] text-slate-400 line-clamp-1">{rule.description}</div>
+                    <div className="text-xs text-[#003366] font-medium">{rule.ruleCode}</div>
+                    <div className="text-xs text-slate-600 line-clamp-1">{rule.description}</div>
                   </button>
                 );
               })}
@@ -201,23 +199,23 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
 
         {/* RIGHT COLUMN: Parameter Editor Form */}
         <div className="lg:col-span-8 space-y-4">
-          <div className="bg-slate-900 rounded-lg border border-slate-800 shadow-sm p-6 space-y-6">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-xs p-6 space-y-6">
             {/* Header */}
-            <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800">
+            <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-gray-100">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-[10px] font-bold text-amber-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+                  <span className="text-xs font-medium text-[#003366] bg-slate-100 px-2 py-0.5 rounded border border-gray-200">
                     {selectedRule.ruleCode}
                   </span>
-                  <span className="text-xs text-slate-500 font-mono">v{selectedRule.version}</span>
+                  <span className="text-xs text-slate-500">v{selectedRule.version}</span>
                 </div>
-                <h3 className="text-lg font-bold text-white">{selectedRule.title}</h3>
-                <p className="text-xs text-slate-400 max-w-xl">{selectedRule.description}</p>
+                <h3 className="text-base font-bold text-slate-900">{selectedRule.title}</h3>
+                <p className="text-xs text-slate-600 max-w-xl leading-relaxed">{selectedRule.description}</p>
               </div>
 
               {/* Enabled Switch */}
-              <div className="flex items-center gap-2 bg-slate-950 px-3 py-2 rounded border border-slate-800">
-                <label className="text-xs font-semibold text-slate-400 font-mono cursor-pointer">
+              <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-md border border-gray-200">
+                <label className="text-xs font-medium text-slate-700 cursor-pointer">
                   Rule Active:
                 </label>
                 <input
@@ -225,22 +223,22 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                   disabled={!isAdmin}
                   checked={localEnabled}
                   onChange={(e) => setLocalEnabled(e.target.checked)}
-                  className="w-4 h-4 text-amber-500 rounded focus:ring-amber-500 cursor-pointer disabled:opacity-50 accent-amber-500"
+                  className="w-4 h-4 text-[#003366] rounded focus:ring-[#003366] cursor-pointer disabled:opacity-50 accent-[#003366]"
                 />
               </div>
             </div>
 
             {/* Dynamic Parameter Fields based on Rule Code */}
             <div className="space-y-4 text-xs">
-              <h4 className="font-bold text-slate-400 uppercase tracking-widest text-[10px] font-mono flex items-center gap-1.5">
-                <Sliders className="w-3.5 h-3.5 text-amber-500" />
+              <h4 className="font-semibold text-slate-800 text-xs flex items-center gap-1.5">
+                <Sliders className="w-3.5 h-3.5 text-[#003366]" />
                 Statutory Parameters &amp; Thresholds
               </h4>
 
               {/* 1. RULE 6 CHECKLIST */}
               {selectedRule.ruleCode === 'RULE_6_MANDATORY_DECLARATIONS' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-950 p-4 rounded-lg border border-slate-800">
-                  <label className="flex items-center gap-2 font-medium text-slate-300">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-lg border border-gray-200">
+                  <label className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
                     <input
                       type="checkbox"
                       disabled={!isAdmin}
@@ -248,12 +246,12 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                       onChange={(e) =>
                         setLocalParameters({ ...localParameters, requireMrp: e.target.checked })
                       }
-                      className="w-4 h-4 accent-amber-500 rounded"
+                      className="w-4 h-4 accent-[#003366] rounded cursor-pointer"
                     />
                     Require Retail Price (Rule 6(1)(e))
                   </label>
 
-                  <label className="flex items-center gap-2 font-medium text-slate-300">
+                  <label className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
                     <input
                       type="checkbox"
                       disabled={!isAdmin}
@@ -264,12 +262,12 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                           requireTaxInclusiveStatement: e.target.checked,
                         })
                       }
-                      className="w-4 h-4 accent-amber-500 rounded"
+                      className="w-4 h-4 accent-[#003366] rounded cursor-pointer"
                     />
                     Require "incl. of all taxes" statement
                   </label>
 
-                  <label className="flex items-center gap-2 font-medium text-slate-300">
+                  <label className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
                     <input
                       type="checkbox"
                       disabled={!isAdmin}
@@ -280,12 +278,12 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                           requireNetQuantity: e.target.checked,
                         })
                       }
-                      className="w-4 h-4 accent-amber-500 rounded"
+                      className="w-4 h-4 accent-[#003366] rounded cursor-pointer"
                     />
                     Require Standard Net Quantity
                   </label>
 
-                  <label className="flex items-center gap-2 font-medium text-slate-300">
+                  <label className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
                     <input
                       type="checkbox"
                       disabled={!isAdmin}
@@ -293,12 +291,12 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                       onChange={(e) =>
                         setLocalParameters({ ...localParameters, requireMfgDate: e.target.checked })
                       }
-                      className="w-4 h-4 accent-amber-500 rounded"
+                      className="w-4 h-4 accent-[#003366] rounded cursor-pointer"
                     />
                     Require Month &amp; Year of Mfg/Packing
                   </label>
 
-                  <label className="flex items-center gap-2 font-medium text-slate-300">
+                  <label className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
                     <input
                       type="checkbox"
                       disabled={!isAdmin}
@@ -309,12 +307,12 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                           requireConsumerCare: e.target.checked,
                         })
                       }
-                      className="w-4 h-4 accent-amber-500 rounded"
+                      className="w-4 h-4 accent-[#003366] rounded cursor-pointer"
                     />
                     Require Consumer Care Cell Details
                   </label>
 
-                  <label className="flex items-center gap-2 font-medium text-slate-300">
+                  <label className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
                     <input
                       type="checkbox"
                       disabled={!isAdmin}
@@ -325,7 +323,7 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                           requireCountryOfOrigin: e.target.checked,
                         })
                       }
-                      className="w-4 h-4 accent-amber-500 rounded"
+                      className="w-4 h-4 accent-[#003366] rounded cursor-pointer"
                     />
                     Require Country of Origin (PCR 2020)
                   </label>
@@ -334,14 +332,14 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
 
               {/* 2. RULE 7 & 8 FONT TIERS */}
               {selectedRule.ruleCode === 'RULE_7_8_FONT_SPECIFICATIONS' && (
-                <div className="space-y-3 bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono">
-                  <div className="font-semibold text-slate-300 uppercase text-[10px] tracking-wider">
+                <div className="space-y-3 bg-slate-50 p-4 rounded-lg border border-gray-200 font-mono">
+                  <div className="font-semibold text-slate-800 uppercase text-[10px] tracking-wider">
                     Rule 8 Table 1 Minimum Height Thresholds (mm):
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div>
-                      <span className="text-slate-500 text-[10px] uppercase block">≤ 50g / ml Min:</span>
+                      <span className="text-slate-600 text-[10px] uppercase block">≤ 50g / ml Min:</span>
                       <input
                         type="number"
                         step="0.1"
@@ -352,12 +350,12 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                           tiers[0] = { ...tiers[0], minHeightMm: Number(e.target.value) };
                           setLocalParameters({ ...localParameters, tiers });
                         }}
-                        className="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded font-mono font-bold text-amber-400 text-xs focus:outline-none focus:border-amber-500"
+                        className="w-full mt-1 p-2 bg-white border border-gray-300 rounded font-mono font-bold text-[#003366] text-xs focus:outline-none focus:border-[#003366]"
                       />
                     </div>
 
                     <div>
-                      <span className="text-slate-500 text-[10px] uppercase block">50g - 200g Min:</span>
+                      <span className="text-slate-600 text-[10px] uppercase block">50g - 200g Min:</span>
                       <input
                         type="number"
                         step="0.1"
@@ -368,12 +366,12 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                           tiers[1] = { ...tiers[1], minHeightMm: Number(e.target.value) };
                           setLocalParameters({ ...localParameters, tiers });
                         }}
-                        className="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded font-mono font-bold text-amber-400 text-xs focus:outline-none focus:border-amber-500"
+                        className="w-full mt-1 p-2 bg-white border border-gray-300 rounded font-mono font-bold text-[#003366] text-xs focus:outline-none focus:border-[#003366]"
                       />
                     </div>
 
                     <div>
-                      <span className="text-slate-500 text-[10px] uppercase block">200g - 1kg Min:</span>
+                      <span className="text-slate-600 text-[10px] uppercase block">200g - 1kg Min:</span>
                       <input
                         type="number"
                         step="0.1"
@@ -384,12 +382,12 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                           tiers[2] = { ...tiers[2], minHeightMm: Number(e.target.value) };
                           setLocalParameters({ ...localParameters, tiers });
                         }}
-                        className="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded font-mono font-bold text-amber-400 text-xs focus:outline-none focus:border-amber-500"
+                        className="w-full mt-1 p-2 bg-white border border-gray-300 rounded font-mono font-bold text-[#003366] text-xs focus:outline-none focus:border-[#003366]"
                       />
                     </div>
 
                     <div>
-                      <span className="text-slate-500 text-[10px] uppercase block">&gt; 1kg / L Min:</span>
+                      <span className="text-slate-600 text-[10px] uppercase block">&gt; 1kg / L Min:</span>
                       <input
                         type="number"
                         step="0.1"
@@ -400,7 +398,7 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                           tiers[3] = { ...tiers[3], minHeightMm: Number(e.target.value) };
                           setLocalParameters({ ...localParameters, tiers });
                         }}
-                        className="w-full mt-1 p-2 bg-slate-900 border border-slate-700 rounded font-mono font-bold text-amber-400 text-xs focus:outline-none focus:border-amber-500"
+                        className="w-full mt-1 p-2 bg-white border border-gray-300 rounded font-mono font-bold text-[#003366] text-xs focus:outline-none focus:border-[#003366]"
                       />
                     </div>
                   </div>
@@ -409,9 +407,9 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
 
               {/* 3. RULE 26 EXEMPTIONS */}
               {selectedRule.ruleCode === 'RULE_26_EXEMPTIONS' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-gray-200 font-mono">
                   <div>
-                    <label className="block font-medium text-slate-300 mb-1 text-[11px] uppercase tracking-wider">
+                    <label className="block font-semibold text-slate-700 mb-1 text-[11px] uppercase tracking-wider">
                       Small Package Threshold (Rule 26(a)):
                     </label>
                     <div className="flex items-center gap-2">
@@ -425,14 +423,14 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                             smallPackageThresholdGramsOrMl: Number(e.target.value),
                           })
                         }
-                        className="w-full p-2 bg-slate-900 border border-slate-700 rounded font-mono font-bold text-amber-400 text-xs focus:outline-none focus:border-amber-500"
+                        className="w-full p-2 bg-white border border-gray-300 rounded font-mono font-bold text-[#003366] text-xs focus:outline-none focus:border-[#003366]"
                       />
-                      <span className="text-slate-400 font-medium">g / ml</span>
+                      <span className="text-slate-600 font-medium">g / ml</span>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block font-medium text-slate-300 mb-1 text-[11px] uppercase tracking-wider">
+                    <label className="block font-semibold text-slate-700 mb-1 text-[11px] uppercase tracking-wider">
                       Bulk Agricultural Threshold (Rule 26(b)):
                     </label>
                     <div className="flex items-center gap-2">
@@ -446,9 +444,9 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                             bulkAgricultureThresholdKg: Number(e.target.value),
                           })
                         }
-                        className="w-full p-2 bg-slate-900 border border-slate-700 rounded font-mono font-bold text-amber-400 text-xs focus:outline-none focus:border-amber-500"
+                        className="w-full p-2 bg-white border border-gray-300 rounded font-mono font-bold text-[#003366] text-xs focus:outline-none focus:border-[#003366]"
                       />
-                      <span className="text-slate-400 font-medium">kg</span>
+                      <span className="text-slate-600 font-medium">kg</span>
                     </div>
                   </div>
                 </div>
@@ -456,9 +454,9 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
 
               {/* 4. PENALTY SLABS & COMPOUNDING */}
               {selectedRule.ruleCode === 'NOTICE_GRADING_COMPOUNDING' && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-lg border border-gray-200 font-mono">
                   <div>
-                    <label className="block font-medium text-slate-300 mb-1 text-[11px] uppercase tracking-wider">
+                    <label className="block font-semibold text-slate-700 mb-1 text-[11px] uppercase tracking-wider">
                       Minor Penalty Base (₹):
                     </label>
                     <input
@@ -471,12 +469,12 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                           minorBaseFineInr: Number(e.target.value),
                         })
                       }
-                      className="w-full p-2 bg-slate-900 border border-slate-700 rounded font-mono font-bold text-amber-400 text-xs focus:outline-none focus:border-amber-500"
+                      className="w-full p-2 bg-white border border-gray-300 rounded font-mono font-bold text-[#003366] text-xs focus:outline-none focus:border-[#003366]"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-medium text-slate-300 mb-1 text-[11px] uppercase tracking-wider">
+                    <label className="block font-semibold text-slate-700 mb-1 text-[11px] uppercase tracking-wider">
                       Moderate Penalty Base (₹):
                     </label>
                     <input
@@ -489,12 +487,12 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                           moderateBaseFineInr: Number(e.target.value),
                         })
                       }
-                      className="w-full p-2 bg-slate-900 border border-slate-700 rounded font-mono font-bold text-amber-400 text-xs focus:outline-none focus:border-amber-500"
+                      className="w-full p-2 bg-white border border-gray-300 rounded font-mono font-bold text-[#003366] text-xs focus:outline-none focus:border-[#003366]"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-medium text-slate-300 mb-1 text-[11px] uppercase tracking-wider">
+                    <label className="block font-semibold text-slate-700 mb-1 text-[11px] uppercase tracking-wider">
                       Severe Penalty Base (₹):
                     </label>
                     <input
@@ -507,7 +505,7 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                           severeBaseFineInr: Number(e.target.value),
                         })
                       }
-                      className="w-full p-2 bg-slate-900 border border-slate-700 rounded font-mono font-bold text-amber-400 text-xs focus:outline-none focus:border-amber-500"
+                      className="w-full p-2 bg-white border border-gray-300 rounded font-mono font-bold text-[#003366] text-xs focus:outline-none focus:border-[#003366]"
                     />
                   </div>
                 </div>
@@ -515,8 +513,8 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
 
               {/* 5. OVERCHARGE TOLERANCE */}
               {selectedRule.ruleCode === 'RULE_18_2_OVERCHARGING_CHECK' && (
-                <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-2 font-mono">
-                  <label className="block font-medium text-slate-300 text-[11px] uppercase tracking-wider">
+                <div className="bg-slate-50 p-4 rounded-lg border border-gray-200 space-y-2">
+                  <label className="block font-medium text-slate-700 text-xs">
                     Statutory Platform Price Tolerance (₹):
                   </label>
                   <input
@@ -529,9 +527,9 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                         defaultPlatformToleranceInr: Number(e.target.value),
                       })
                     }
-                    className="w-48 p-2 bg-slate-900 border border-slate-700 rounded font-mono font-bold text-amber-400 text-xs focus:outline-none focus:border-amber-500"
+                    className="w-48 p-2 bg-white border border-gray-300 rounded font-mono font-bold text-[#003366] text-xs focus:outline-none focus:border-[#003366]"
                   />
-                  <span className="text-[11px] text-slate-500 block">
+                  <span className="text-xs text-slate-500 block">
                     Statutory standard is ₹0 tolerance (any listing price &gt; package MRP constitutes an offence under Rule 18(2)).
                   </span>
                 </div>
@@ -540,22 +538,22 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
 
             {/* Status alerts */}
             {saveSuccessMsg && (
-              <div className="p-3.5 bg-emerald-950/40 border border-emerald-500/40 rounded-lg text-emerald-300 text-xs flex items-center gap-2 font-mono">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-md text-emerald-800 text-xs flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 {saveSuccessMsg}
               </div>
             )}
 
             {errorMessage && (
-              <div className="p-3.5 bg-red-950/40 border border-red-500/40 rounded-lg text-red-300 text-xs flex items-center gap-2 font-mono">
-                <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+              <div className="p-3.5 bg-red-50 border border-red-200 rounded-md text-red-800 text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
                 {errorMessage}
               </div>
             )}
 
             {/* Save Button */}
-            <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-              <span className="text-[11px] text-slate-500 font-mono">
+            <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+              <span className="text-xs text-slate-500">
                 Last modified: {new Date(selectedRule.lastUpdated).toLocaleString('en-IN')} by{' '}
                 {selectedRule.updatedBy}
               </span>
@@ -564,7 +562,7 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
                 <button
                   onClick={handleSaveRule}
                   disabled={isSaving}
-                  className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-xs uppercase tracking-wider transition flex items-center gap-2 shadow-lg shadow-amber-500/20"
+                  className="px-4 py-2 bg-[#003366] hover:bg-[#002244] text-white font-medium rounded-md text-xs transition flex items-center gap-2 shadow-xs cursor-pointer"
                 >
                   {isSaving ? (
                     <>
@@ -581,7 +579,7 @@ export const RuleConfigEditor: React.FC<RuleConfigEditorProps> = ({
               ) : (
                 <button
                   disabled
-                  className="px-5 py-2.5 bg-slate-800 text-slate-500 font-bold rounded flex items-center gap-2 cursor-not-allowed text-xs font-mono"
+                  className="px-4 py-2 bg-slate-100 text-slate-400 border border-gray-200 font-medium rounded-md flex items-center gap-2 cursor-not-allowed text-xs"
                 >
                   <Lock className="w-4 h-4" />
                   Admin Privilege Required

@@ -48,6 +48,9 @@ export interface ExtractedDeclarations {
   rawOcrText: string;
   detectedBoxes?: BoundingBox[];
   paddleOcrResult?: PaddleOcrResult;
+  isFallback?: boolean;
+  fallbackReason?: string;
+  extractionMethod?: 'gemini_multimodal' | 'fallback_sample';
 }
 
 export interface FontValidationItem {
@@ -107,6 +110,9 @@ export interface InspectionRecord {
   inspectorName: string;
   inspectorRole: UserRole;
   supervisorNotes?: string;
+  isFallback?: boolean;
+  fallbackReason?: string;
+  extractionMethod?: 'gemini_multimodal' | 'fallback_sample';
 }
 
 export interface LegalRuleDefinition {

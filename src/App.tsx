@@ -105,7 +105,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F172A] text-slate-200 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950">
+    <div className="min-h-screen bg-[#F8F9FA] text-slate-800 flex flex-col font-sans selection:bg-[#FF9933] selection:text-slate-950">
       {/* Top Govt & Navigation Bar */}
       <Navbar
         currentRole={currentRole}
@@ -117,7 +117,7 @@ export default function App() {
       />
 
       {/* Main App Canvas */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 focus:outline-none" tabIndex={-1}>
         {activeTab === 'inspect' && (
           <ScanInspection
             currentRole={currentRole}
@@ -169,20 +169,47 @@ export default function App() {
         onClose={() => setIsMobileModalOpen(false)}
       />
 
-      {/* Govt Footer - Geometric Balance */}
-      <footer className="h-14 bg-slate-950 border-t border-slate-800 px-6 sm:px-8 flex flex-wrap items-center justify-between text-[10px] text-slate-500 uppercase tracking-widest gap-2">
-        <div className="flex items-center gap-3">
-          <span className="font-semibold text-slate-400">Legal Metrology Engine v2.4.0 (Vision &amp; OCR Pipeline)</span>
-          <span className="text-slate-700 hidden sm:inline">•</span>
-          <span className="hidden sm:inline">PCR 2011 / Legal Metrology Act, 2009</span>
-        </div>
-        <div className="flex items-center gap-3 font-mono">
-          <span className="text-emerald-500 flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            System Ready: 127.0.0.1:3000
-          </span>
-          <span className="text-slate-700">•</span>
-          <span className="text-amber-500">e-Maap Active</span>
+      {/* Standard Government of India Footer Pattern */}
+      <footer className="bg-[#002244] border-t-4 border-[#FF9933] text-slate-300 py-6 px-4 sm:px-8 text-xs font-sans mt-auto">
+        <div className="max-w-7xl mx-auto space-y-4">
+          {/* Footer Links Row */}
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-y-2 gap-x-3 text-[11px] text-slate-300 border-b border-blue-900/60 pb-3">
+            <span className="text-[#FF9933] font-semibold">Maanak Portal</span>
+            <span className="text-slate-600">|</span>
+            <span className="hover:underline cursor-pointer">Website Policies</span>
+            <span className="text-slate-600">|</span>
+            <span className="hover:underline cursor-pointer">Privacy Policy</span>
+            <span className="text-slate-600">|</span>
+            <span className="hover:underline cursor-pointer">Terms &amp; Conditions</span>
+            <span className="text-slate-600">|</span>
+            <span className="hover:underline cursor-pointer">Hyperlinking Policy</span>
+            <span className="text-slate-600">|</span>
+            <span className="hover:underline cursor-pointer">Accessibility Statement</span>
+            <span className="text-slate-600">|</span>
+            <span className="hover:underline cursor-pointer">Help &amp; FAQ</span>
+            <span className="text-slate-600">|</span>
+            <span className="hover:underline cursor-pointer">Sitemap</span>
+          </div>
+
+          {/* Ownership and Copyright Information */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">
+            <div className="text-center sm:text-left space-y-0.5">
+              <p className="font-medium text-slate-300">
+                Content owned, maintained, and updated by Department of Consumer Affairs, Ministry of Consumer Affairs, Food &amp; Public Distribution, Government of India.
+              </p>
+              <p className="text-[10px] text-slate-400">
+                Statutory Authority: Legal Metrology (Packaged Commodities) Rules, 2011 &amp; Legal Metrology Act, 2009.
+              </p>
+            </div>
+
+            <div className="text-center sm:text-right shrink-0 font-sans text-[10px] text-slate-400">
+              <div>Last Updated: <span className="text-slate-200 font-semibold">06 Sep 2026</span></div>
+              <div className="text-emerald-400 font-medium flex items-center justify-center sm:justify-end gap-1 mt-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
+                National Informatics Network Active
+              </div>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
