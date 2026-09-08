@@ -50,7 +50,7 @@ export interface ExtractedDeclarations {
   paddleOcrResult?: PaddleOcrResult;
   isFallback?: boolean;
   fallbackReason?: string;
-  extractionMethod?: 'gemini_multimodal' | 'fallback_sample';
+  extractionMethod?: 'gemini_multimodal' | 'fallback_sample' | 'svg_optical_parser' | string;
 }
 
 export interface FontValidationItem {
@@ -112,7 +112,7 @@ export interface InspectionRecord {
   supervisorNotes?: string;
   isFallback?: boolean;
   fallbackReason?: string;
-  extractionMethod?: 'gemini_multimodal' | 'fallback_sample';
+  extractionMethod?: 'gemini_multimodal' | 'fallback_sample' | 'svg_optical_parser' | string;
 }
 
 export interface LegalRuleDefinition {
