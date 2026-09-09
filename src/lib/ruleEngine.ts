@@ -9,11 +9,34 @@ import {
 
 export function evaluateExemption(
   declarations: ExtractedDeclarations,
-  rules: LegalRuleDefinition[]
+  rules: LegalRuleDefinition[],
+  commodityCategoryOverride?: string
 ): ExemptionCheck {
   const ruleDef = rules.find((r) => r.ruleCode === 'RULE_26_EXEMPTIONS');
   if (!ruleDef || !ruleDef.enabled) {
     return { isExempt: false, clause: '', reason: 'Exemption rule disabled' };
+  }
+
+  // Resolve commodity category from explicit param, declarations fields, or reasoning
+  const category = (
+    commodityCategoryOverride ||
+    declarations.commodityCategory ||
+    declarations.commodity_category ||
+    declarations.categoryReasoning?.commodity_category ||
+    ''
+  ).toLowerCase().trim();
+
+  // RULE 26 PAN MASALA STATUTORY CARVE-OUT (DECEMBER 2025 GAZETTE AMENDMENT):
+  // When commodity_category === "pan_masala", the package is NEVER treated as exempt under Rule 26
+  // regardless of net quantity — this overrides the normal <=10g/10ml exemption path.
+  if (category === 'pan_masala') {
+    return {
+      isExempt: false,
+      clause: 'Rule 26 Carve-Out (Dec 2025 Gazette Notification)',
+      reason:
+        'NON-EXEMPT: Under the Legal Metrology (Packaged Commodities) December 2025 Amendment, Pan Masala and related areca nut/zarda products are statutorily excluded from Rule 26(a) small-package exemptions. All Rule 6 mandatory declarations are enforceable regardless of net quantity (even if ≤ 10g).',
+      carveOutApplied: true,
+    };
   }
 
   const smallLimit = ruleDef.parameters.smallPackageThresholdGramsOrMl ?? 10;

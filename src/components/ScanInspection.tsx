@@ -13,6 +13,7 @@ import {
   validateFontSpecifications,
   gradeStatutoryNotice,
 } from '../lib/ruleEngine';
+import { lookupCategoryByGenericName, CategorizationResult } from '../data/categoryTaxonomy';
 import {
   Camera,
   Upload,
@@ -34,6 +35,9 @@ import {
   Check,
   Smartphone,
   QrCode,
+  Tag,
+  HelpCircle,
+  ShieldAlert,
 } from 'lucide-react';
 
 interface ScanInspectionProps {
@@ -78,11 +82,16 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
   ): InspectionRecord => {
     const cleanBrand = brand && !brand.includes('Pending') ? brand : 'Scanned Commodity';
     const cleanProduct = productName && !productName.includes('Pending') ? productName : 'Pre-Packaged Commodity';
+    const categorization = lookupCategoryByGenericName(cleanProduct);
 
     const declarations: ExtractedDeclarations = {
       isFallback: true,
       fallbackReason: 'Gemini multimodal vision extraction unavailable on network. Showing standard sample benchmark declarations.',
       extractionMethod: 'fallback_sample',
+      genericName: cleanProduct,
+      commodityCategory: categorization.commodity_category,
+      commodity_category: categorization.commodity_category,
+      categoryReasoning: categorization,
       mrpText: '₹140.00 (incl. of all taxes)',
       mrpValue: 140,
       hasInclusiveOfTaxes: true,
@@ -116,7 +125,7 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
       declarations.detectedBoxes
     );
 
-    const exemption = evaluateExemption(declarations, INITIAL_RULES);
+    const exemption = evaluateExemption(declarations, INITIAL_RULES, categorization.commodity_category);
     const rule6Result = validateRule6Declarations(declarations, INITIAL_RULES);
     const fontValidations = validateFontSpecifications(
       declarations,
@@ -135,7 +144,11 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
       timestamp: new Date().toISOString(),
       productName: cleanProduct,
       brand: cleanBrand,
-      category: category || 'Packaged Commodity',
+      category: categorization.categoryName || category || 'Packaged Commodity',
+      genericName: cleanProduct,
+      commodity_category: categorization.commodity_category,
+      commodityCategory: categorization.commodity_category,
+      categoryReasoning: categorization,
       packageHeightMm: heightMm || 180,
       packageWidthMm: widthMm || 95,
       imageUrl,
@@ -414,6 +427,14 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
 
   const { declarations, fontValidations, exemption, noticeGrading } = activeRecord;
   const hasViolations = noticeGrading.violationCount > 0;
+  const categoryReasoning: CategorizationResult =
+    activeRecord.categoryReasoning ||
+    declarations.categoryReasoning ||
+    lookupCategoryByGenericName(
+      declarations.genericName ||
+      activeRecord.genericName ||
+      activeRecord.productName
+    );
 
   return (
     <div className="space-y-6">
@@ -526,7 +547,9 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
                 <option value="INSP-2026-015">⚠️ ChocoSwirl Cake Mix (Missing Mfg Date)</option>
                 <option value="INSP-2026-016">⚠️ Apex Clean (Omitted 'incl. of taxes')</option>
               </optgroup>
-              <optgroup label="Rule 26 Statutory Exemptions">
+              <optgroup label="Rule 26 Statutory Exemptions & Carve-Out">
+                <option value="INSP-2026-023">⚡ Rajshree Pan Masala 4g (Rule 26 Carve-Out)</option>
+                <option value="INSP-2026-024">❓ Aura Desk Ornament (Undetermined Category)</option>
                 <option value="INSP-2026-018">✅ Pain Balm 5g (Rule 26(a) Small Pack)</option>
                 <option value="INSP-2026-019">✅ Wheat Grain 65kg (Rule 26(b) Bulk Agri)</option>
                 <option value="INSP-2026-020">✅ Hotel Counter Biryani (Rule 26(c) Restaurant)</option>
@@ -744,6 +767,111 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
               <div><span className="font-medium text-slate-800">Customer Helpline:</span> {declarations.consumerCarePhone || declarations.consumerCareEmail || 'Omitted'}</div>
             </div>
           </div>
+
+          {/* Statutory Commodity Categorization & Regulatory Traceability Card (Rule 6(1)(b)) */}
+          <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-xs text-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <Tag className="w-4 h-4 text-[#003366]" />
+                <span className="text-sm font-semibold text-slate-900">
+                  Statutory Commodity Categorization
+                </span>
+              </div>
+              <span className="text-[11px] font-mono text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-gray-200">
+                Rule 6(1)(b)
+              </span>
+            </div>
+
+            {/* Status / Review Flag Banner */}
+            {categoryReasoning.isUndetermined ? (
+              <div className="p-3 bg-amber-50 border border-amber-300 rounded-md text-amber-900 space-y-1.5 shadow-xs">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-bold text-xs text-amber-900">
+                      Category could not be automatically determined — officer review required
+                    </div>
+                    <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
+                      The declared generic name text does not confidently match any entry in the controlled category taxonomy. Rather than defaulting to a guessed category, automatic categorization is strictly withheld for officer adjudication.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : categoryReasoning.hasRule26CarveOut ? (
+              <div className="p-3 bg-red-50 border border-red-300 rounded-md text-red-900 space-y-1.5 shadow-xs">
+                <div className="flex items-start gap-2">
+                  <ShieldAlert className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-bold text-xs text-red-900">
+                      December 2025 Gazette Amendment Carve-Out Enforced
+                    </div>
+                    <p className="text-[11px] text-red-800 mt-1 leading-relaxed">
+                      Pan Masala and related areca nut products are statutorily excluded from Rule 26(a) small-package exemptions. All Rule 6 mandatory declarations and Rule 8 numeral heights must be strictly verified regardless of net quantity (even if ≤ 10g).
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-md flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="font-semibold text-emerald-900">{categoryReasoning.categoryName}</span>
+                </div>
+                <span className="font-mono text-[11px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-medium">
+                  {categoryReasoning.commodity_category}
+                </span>
+              </div>
+            )}
+
+            {/* Why This Category Explainer Box */}
+            <div className="space-y-2.5 bg-slate-50 p-3.5 rounded-md border border-gray-200">
+              <div className="flex items-center justify-between text-slate-800 font-semibold text-[11px]">
+                <span className="flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-[#003366]" />
+                  Why this category? (Regulatory Traceability)
+                </span>
+                <span className="text-[10px] text-slate-500 font-mono">Taxonomy Lookup</span>
+              </div>
+
+              <div className="space-y-2 text-[11px]">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-slate-500 shrink-0 font-medium">Declared Generic Name:</span>
+                  <span className="font-semibold text-slate-900 text-right truncate max-w-[200px]" title={categoryReasoning.declaredGenericName}>
+                    {categoryReasoning.declaredGenericName || declarations.genericName || activeRecord.genericName || 'Not declared on packaging'}
+                  </span>
+                </div>
+
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-slate-500 shrink-0 font-medium">Matched Keyword:</span>
+                  {categoryReasoning.matchedKeyword ? (
+                    <span className="font-mono text-[11px] bg-blue-50 text-blue-800 px-1.5 py-0.5 rounded border border-blue-200 font-medium">
+                      "{categoryReasoning.matchedKeyword}"
+                    </span>
+                  ) : (
+                    <span className="text-amber-700 italic">None (No Taxonomy Match)</span>
+                  )}
+                </div>
+
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-slate-500 shrink-0 font-medium">Assigned Category:</span>
+                  <span className="font-mono text-slate-800 font-medium bg-white px-1.5 py-0.5 rounded border border-gray-200">
+                    {categoryReasoning.commodity_category}
+                  </span>
+                </div>
+
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-slate-500 shrink-0 font-medium">Rule 5 Schedule:</span>
+                  <span className="text-slate-700 text-right text-[11px]">
+                    {categoryReasoning.standardSizeSchedule || 'Not scheduled in Second Schedule'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-gray-200 text-[10px] text-slate-500 leading-relaxed italic">
+                Legal Metrology Assurance: Categorization is grounded strictly in declared generic name text (Rule 6(1)(b)) rather than guessed from brand recognition or opaque AI heuristics.
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* RIGHT COLUMN: Legal Compliance Findings & Statutory Assessment */}
@@ -900,6 +1028,51 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
                 </div>
 
                 <div className="space-y-3">
+                  {/* 0. Generic Name & Statutory Classification (Rule 6(1)(b)) */}
+                  <div
+                    className={`p-4 bg-slate-50 border border-gray-200 border-l-4 rounded-md transition flex items-start justify-between gap-3 ${
+                      !categoryReasoning.isUndetermined && (declarations.genericName || activeRecord.genericName)
+                        ? 'border-l-[#003366]'
+                        : categoryReasoning.isUndetermined
+                        ? 'border-l-amber-500'
+                        : 'border-l-red-500'
+                    }`}
+                  >
+                    <div className="space-y-0.5">
+                      <p className="text-xs text-slate-500 font-medium">
+                        Rule 6(1)(b) • Generic / Common Name &amp; Commodity Category
+                      </p>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-base font-semibold text-slate-900">
+                          {declarations.genericName || activeRecord.genericName || 'Not explicitly declared'}
+                        </span>
+                        <span className="text-xs font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200">
+                          {categoryReasoning.commodity_category}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        {categoryReasoning.matchedKeyword
+                          ? `Matched taxonomy keyword "${categoryReasoning.matchedKeyword}" → ${categoryReasoning.categoryName}`
+                          : 'No taxonomy keyword matched — officer manual classification required.'}
+                      </p>
+                    </div>
+                    <div>
+                      {categoryReasoning.isUndetermined ? (
+                        <span className="text-xs font-medium text-amber-800 bg-amber-50 px-2.5 py-1 rounded border border-amber-200 flex items-center gap-1">
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-600" /> Officer Review
+                        </span>
+                      ) : declarations.genericName || activeRecord.genericName ? (
+                        <span className="text-xs font-medium text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Verified
+                        </span>
+                      ) : (
+                        <span className="text-xs font-medium text-red-800 bg-red-50 px-2.5 py-1 rounded border border-red-200 flex items-center gap-1">
+                          <AlertOctagon className="w-3.5 h-3.5 text-red-600" /> Missing
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
                   {/* 1. MRP */}
                   <div
                     className={`p-4 bg-slate-50 border border-gray-200 border-l-4 rounded-md transition flex items-start justify-between gap-3 ${
@@ -1211,6 +1384,23 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
             {/* TAB CONTENT: Rule 26 Exemption Gate */}
             {inspectionTab === 'exemption' && (
               <div className="p-5 space-y-4 bg-white">
+                {/* Special Callout: December 2025 Pan Masala Carve-Out */}
+                {(categoryReasoning.hasRule26CarveOut || exemption.carveOutApplied || activeRecord.commodity_category === 'pan_masala' || declarations.commodity_category === 'pan_masala') && (
+                  <div className="p-4 rounded-lg bg-red-50 border border-red-300 text-red-900 space-y-2 shadow-xs">
+                    <div className="flex items-center gap-2 font-bold text-sm text-red-800">
+                      <ShieldAlert className="w-5 h-5 text-red-600 shrink-0" />
+                      Statutory Carve-Out Applied: Pan Masala (December 2025 Gazette Amendment)
+                    </div>
+                    <p className="text-xs text-red-800 leading-relaxed">
+                      Under the Legal Metrology (Packaged Commodities) Amendment Rules, 2025, packages of Pan Masala, supari mix, and areca nut formulations are <strong>statutorily barred</strong> from the Rule 26(a) small-package exemption (≤10g/10ml).
+                    </p>
+                    <div className="p-2.5 bg-white/80 rounded border border-red-200 text-xs font-medium text-red-950 flex items-center justify-between">
+                      <span>Exemption Disallowed: Normal ≤10g threshold overridden</span>
+                      <span className="font-mono text-red-700 bg-red-100 px-2 py-0.5 rounded text-[11px]">Enforceable Under Chapter II</span>
+                    </div>
+                  </div>
+                )}
+
                 <div
                   className={`p-4 rounded-lg border ${
                     exemption.isExempt
@@ -1246,7 +1436,12 @@ export const ScanInspection: React.FC<ScanInspectionProps> = ({
                     Statutory Exemption Criteria (Rule 26):
                   </div>
                   <ul className="list-disc pl-5 space-y-1.5 text-xs text-slate-700">
-                    <li><strong className="text-slate-900">Rule 26(a):</strong> Packages containing net quantity of 10g or 10ml or less.</li>
+                    <li>
+                      <strong className="text-slate-900">Rule 26(a):</strong> Packages containing net quantity of 10g or 10ml or less.
+                      <span className="text-red-700 font-medium block text-[11px] ml-1 mt-0.5">
+                        * Note: Subject to December 2025 Gazette Amendment carve-out excluding Pan Masala / Gutkha / Supari mixtures.
+                      </span>
+                    </li>
                     <li><strong className="text-slate-900">Rule 26(b):</strong> Packages containing agricultural produce exceeding 50 kilograms.</li>
                     <li><strong className="text-slate-900">Rule 26(c):</strong> Fast food items packed across the counter in hotels/restaurants.</li>
                     <li><strong className="text-slate-900">Rule 26(d):</strong> Scheduled formulations under Drug Price Control Order (DPCO).</li>

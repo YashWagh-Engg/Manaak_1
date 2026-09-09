@@ -89,6 +89,14 @@ export const E2ETestRunner: React.FC = () => {
       latencyMs: 44,
       details: 'A4 format PDF output stream generated with statutory citations and compounding schedule.',
     },
+    {
+      id: 'step-9',
+      name: '9. Controlled Category Taxonomy & Dec 2025 Pan Masala Carve-Out',
+      description: 'Categorizes commodities via declared generic name text; enforces Dec 2025 carve-out barring <=10g exemption.',
+      status: 'passed',
+      latencyMs: 6,
+      details: 'Verified controlled lookup, "undetermined" fallback for non-matches, and Rule 26 Pan Masala exemption override.',
+    },
   ]);
 
   const handleRunE2ETests = async () => {

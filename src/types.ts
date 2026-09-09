@@ -1,3 +1,5 @@
+import { CategorizationResult } from './data/categoryTaxonomy';
+
 export type UserRole = 'field_officer' | 'supervisor' | 'admin';
 
 export interface BoundingBox {
@@ -30,6 +32,10 @@ export interface PaddleOcrResult {
 }
 
 export interface ExtractedDeclarations {
+  genericName?: string;
+  commodityCategory?: string;
+  commodity_category?: string;
+  categoryReasoning?: CategorizationResult;
   mrpText: string;
   mrpValue: number | null;
   hasInclusiveOfTaxes: boolean;
@@ -66,6 +72,7 @@ export interface ExemptionCheck {
   isExempt: boolean;
   clause: string;
   reason: string;
+  carveOutApplied?: boolean;
 }
 
 export interface OverchargeResult {
@@ -98,6 +105,10 @@ export interface InspectionRecord {
   productName: string;
   brand: string;
   category: string;
+  genericName?: string;
+  commodity_category?: string;
+  commodityCategory?: string;
+  categoryReasoning?: CategorizationResult;
   packageHeightMm: number;
   packageWidthMm: number;
   imageUrl: string;

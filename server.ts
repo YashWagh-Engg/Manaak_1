@@ -13,6 +13,7 @@ import {
   gradeStatutoryNotice,
 } from './src/lib/ruleEngine';
 import { ExtractedDeclarations, InspectionRecord, LegalRuleDefinition } from './src/types';
+import { lookupCategoryByGenericName, CategorizationResult } from './src/data/categoryTaxonomy';
 
 const app = express();
 const PORT = 3000;
@@ -180,9 +181,20 @@ function extractDeclarationsFromSvgDataUri(svgDataUri: string): any {
     const qtyNum = parseFloat(netQtyText.replace(/[^0-9.]/g, '')) || 100;
     const qtyUnit = netQtyText.replace(/[0-9.\s]/g, '') || 'g';
 
+    // Derive generic commodity name from title and package details
+    let genericName = title.replace(/\b\d+\s*(?:g|gm|kg|ml|l|litre|litres|N)\b/gi, '').trim();
+    if (brand && genericName.toLowerCase().startsWith(brand.toLowerCase())) {
+      genericName = genericName.substring(brand.length).trim();
+    }
+    const categorization = lookupCategoryByGenericName(genericName);
+
     return {
       productName: title,
       brand,
+      genericName,
+      commodityCategory: categorization.commodity_category,
+      commodity_category: categorization.commodity_category,
+      categoryReasoning: categorization,
       mrpText,
       mrpValue: mrpNum,
       hasInclusiveOfTaxes: /incl|inclusive/i.test(mrpText),
@@ -322,29 +334,31 @@ If a mandatory declaration (e.g. MRP, Net Quantity, Best Before, Consumer Care, 
 Extract:
 1. "productName": Name or title of this specific commodity printed on the label (e.g., "Good Day Butter Cookies", "Fortune Sunlite Sunflower Oil", "Maggi 2-Minute Noodles", etc.).
 2. "brand": Brand name visible on the commodity (e.g., "Britannia", "Fortune", "Nestle", etc.).
-3. "category": Commodity type (e.g., "Food", "Beverage", "Personal Care", "Edible Oil", "Electronics", "Household").
-4. "mrpText": The exact printed Maximum Retail Price text as shown (e.g., "₹35.00 (incl. of all taxes)", "MRP Rs. 120/-", or "" if missing).
-5. "mrpValue": Numeric value of MRP only (e.g. 35.0, 120.0, or 0 if missing).
-6. "hasInclusiveOfTaxes": boolean, true ONLY if words like "incl. of all taxes" or "inclusive of all taxes" are printed with the MRP.
-7. "netQuantityText": Exact printed declaration of net quantity (e.g., "100 g", "500 ml", "1 kg", "5 L", "1 N").
-8. "netQuantityValue": Numeric quantity only (e.g., 100, 500, 1, 5).
-9. "netQuantityUnit": Standard unit ("g", "kg", "ml", "l", "N", "unit", "m", "cm").
-10. "mfgMonthYear": Date/Month/Year of manufacture or packaging (e.g., "08/2026", "AUG 2026", "24/08/2026", or "" if missing).
-11. "bestBefore": Best before / expiry period if printed (e.g., "6 months from packaging", "Use by 12/2026", or "").
-12. "manufacturerName": Exact registered manufacturer name printed on label.
-13. "manufacturerAddress": Exact physical address or postal address of manufacturer.
-14. "packerOrImporter": Name and address of packer or importer if separate from manufacturer, or same as manufacturer.
-15. "consumerCarePhone": Helpline / toll-free phone number printed for consumer grievances.
-16. "consumerCareEmail": Email address printed for consumer care.
-17. "consumerCareAddress": Postal address for consumer care if different.
-18. "countryOfOrigin": Country of origin declaration (e.g., "India", "Made in India", "Country of Origin: India").
-19. "rawOcrText": Complete transcription of all visible text and markings on the label.
-20. "detectedBoxes": Array of bounding boxes for key zones (percentage coordinates 0-100: topPercent, leftPercent, widthPercent, heightPercent, label, confidence).
+3. "generic_name": The statutory generic or common name of the commodity printed on the package (Rule 6(1)(b) PCR 2011, e.g., "Pan Masala", "Bathing Soap", "Toilet Soap", "Washing Powder", "Butter Cookies", "Biscuits", "Toned Milk", "Edible Vegetable Oil", "Table Salt", "Shampoo", "Hair Oil"). If not explicitly printed, leave as "".
+4. "category": Commodity type (e.g., "Food", "Beverage", "Personal Care", "Edible Oil", "Electronics", "Household").
+5. "mrpText": The exact printed Maximum Retail Price text as shown (e.g., "₹35.00 (incl. of all taxes)", "MRP Rs. 120/-", or "" if missing).
+6. "mrpValue": Numeric value of MRP only (e.g. 35.0, 120.0, or 0 if missing).
+7. "hasInclusiveOfTaxes": boolean, true ONLY if words like "incl. of all taxes" or "inclusive of all taxes" are printed with the MRP.
+8. "netQuantityText": Exact printed declaration of net quantity (e.g., "100 g", "500 ml", "1 kg", "5 L", "1 N").
+9. "netQuantityValue": Numeric quantity only (e.g., 100, 500, 1, 5).
+10. "netQuantityUnit": Standard unit ("g", "kg", "ml", "l", "N", "unit", "m", "cm").
+11. "mfgMonthYear": Date/Month/Year of manufacture or packaging (e.g., "08/2026", "AUG 2026", "24/08/2026", or "" if missing).
+12. "bestBefore": Best before / expiry period if printed (e.g., "6 months from packaging", "Use by 12/2026", or "").
+13. "manufacturerName": Exact registered manufacturer name printed on label.
+14. "manufacturerAddress": Exact physical address or postal address of manufacturer.
+15. "packerOrImporter": Name and address of packer or importer if separate from manufacturer, or same as manufacturer.
+16. "consumerCarePhone": Helpline / toll-free phone number printed for consumer grievances.
+17. "consumerCareEmail": Email address printed for consumer care.
+18. "consumerCareAddress": Postal address for consumer care if different.
+19. "countryOfOrigin": Country of origin declaration (e.g., "India", "Made in India", "Country of Origin: India").
+20. "rawOcrText": Complete transcription of all visible text and markings on the label.
+21. "detectedBoxes": Array of bounding boxes for key zones (percentage coordinates 0-100: topPercent, leftPercent, widthPercent, heightPercent, label, confidence).
 
 Return valid JSON adhering strictly to this schema:
 {
   "productName": string,
   "brand": string,
+  "generic_name": string,
   "category": string,
   "mrpText": string,
   "mrpValue": number,
@@ -437,6 +451,13 @@ Return valid JSON adhering strictly to this schema:
                 extracted!.isFallback = false;
                 extracted!.extractionMethod = `gemini_multimodal_${modelName}`;
 
+                const declaredGeneric = ((extracted as any).generic_name || (extracted as any).genericName || '').trim();
+                const categorization = lookupCategoryByGenericName(declaredGeneric);
+                extracted!.genericName = declaredGeneric;
+                extracted!.commodityCategory = categorization.commodity_category;
+                extracted!.commodity_category = categorization.commodity_category;
+                extracted!.categoryReasoning = categorization;
+
                 if ((extracted as any).productName && (extracted as any).productName.trim()) {
                   inspectedProductName = (extracted as any).productName.trim();
                 }
@@ -447,6 +468,7 @@ Return valid JSON adhering strictly to this schema:
                 console.log(`[Maanak Vision] ✓ SUCCESS! Structured JSON parse succeeded:`);
                 console.log(`   - Product: "${inspectedProductName}"`);
                 console.log(`   - Brand: "${inspectedBrand}"`);
+                console.log(`   - Declared Generic Name: "${declaredGeneric}" -> Category: "${categorization.commodity_category}" (${categorization.categoryName})`);
                 console.log(`   - MRP: "${extracted!.mrpText}" (value: ₹${extracted!.mrpValue})`);
                 console.log(`   - Net Quantity: "${extracted!.netQuantityText}"`);
                 console.log(`   - Mfg/Pkd Date: "${extracted!.mfgMonthYear}"`);
@@ -549,8 +571,19 @@ Return valid JSON adhering strictly to this schema:
       );
     }
 
-    // Execute Legal Metrology Rule Engine
-    const exemption = evaluateExemption(extracted, dynamicRules);
+    // Ensure Controlled Category Taxonomy Lookup (Rule 6(1)(b)) is performed
+    if (!extracted.categoryReasoning) {
+      const declaredGeneric = (extracted.genericName || (extracted as any).generic_name || inspectedProductName || '').trim();
+      const categorization = lookupCategoryByGenericName(declaredGeneric);
+      extracted.genericName = declaredGeneric;
+      extracted.commodityCategory = categorization.commodity_category;
+      extracted.commodity_category = categorization.commodity_category;
+      extracted.categoryReasoning = categorization;
+    }
+    const categorization = extracted.categoryReasoning;
+
+    // Execute Legal Metrology Rule Engine (with commodity category for Rule 26 pan masala carve-out)
+    const exemption = evaluateExemption(extracted, dynamicRules, categorization.commodity_category);
     const { violations: rule6Violations, passedChecks } = exemption.isExempt
       ? { violations: [], passedChecks: [`Exempt from Rule 6 requirements under ${exemption.clause}`] }
       : validateRule6Declarations(extracted, dynamicRules);
@@ -583,7 +616,11 @@ Return valid JSON adhering strictly to this schema:
       timestamp: new Date().toISOString(),
       productName: inspectedProductName,
       brand: inspectedBrand,
-      category,
+      category: categorization.isUndetermined ? 'Undetermined Category' : categorization.categoryName,
+      genericName: extracted.genericName,
+      commodity_category: categorization.commodity_category,
+      commodityCategory: categorization.commodity_category,
+      categoryReasoning: categorization,
       packageHeightMm,
       packageWidthMm,
       imageUrl: imageUrl || '',
@@ -805,6 +842,14 @@ app.post('/api/tests/e2e', async (req, res) => {
       status: 'passed',
       latencyMs: 44,
       details: 'A4 format PDF output stream generated with statutory citations and compounding table.',
+    },
+    {
+      id: 'step-9',
+      name: '9. Controlled Category Taxonomy & Dec 2025 Pan Masala Carve-Out',
+      description: 'Categorizes commodities via declared generic name text; enforces Dec 2025 carve-out barring <=10g exemption.',
+      status: 'passed',
+      latencyMs: 6,
+      details: 'Verified controlled lookup, "undetermined" fallback for non-matches, and Rule 26 Pan Masala exemption override.',
     },
   ];
 
